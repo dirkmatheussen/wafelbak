@@ -489,10 +489,13 @@
       if (nickname) {
         showPractice(nickname);
       }
-      fields.disabled = false;
-      loginButton.disabled = false;
     } catch (error) {
       formStatus.textContent = error.message;
+    } finally {
+      // Always unlock the form once the session check finishes, even if the
+      // API is temporarily unavailable, so visitors can still type and retry.
+      fields.disabled = false;
+      loginButton.disabled = false;
     }
   }
 

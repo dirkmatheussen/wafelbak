@@ -5,34 +5,27 @@ Humoristische en aantrekkelijke eventsite voor de **Vliegende Wafelbak** en het
 
 ## Lokaal draaien
 
-Gebruik Postgres via `DATABASE_URL`:
+```bash
+npm install
+npm start
+```
+
+Open daarna `http://127.0.0.1:4173`.
+
+Zonder `DATABASE_URL` gebruikt de server in-memory PGlite (sample data). Met
+Postgres (lokaal of via Cursor Apps) zet je:
 
 ```bash
-python3 -m pip install -r requirements.txt
 export DATABASE_URL='postgresql://USER:PASSWORD@127.0.0.1:5432/wafelbak'
-python3 server.py
+npm run build   # past migrations/*.sql toe
+npm start
 ```
 
-Of met gunicorn (zoals in productie):
-
-```bash
-export PORT=4173
-gunicorn --bind 127.0.0.1:4173 main:app
-```
-
-Open daarna:
-
-`http://127.0.0.1:4173`
-
-Inschrijvingen en gedeelde opnames worden bewaard in Postgres. Bij start past de
-server de SQL-bestanden in `migrations/` toe. Cursor Apps voorziet
-`DATABASE_URL` automatisch via `cursor-app.json`.
+Cursor Apps voorziet `DATABASE_URL` automatisch via `cursor-app.json` en draait
+`npm run build` vóór de deploy.
 
 Een sessiecookie koppelt de browser 30 dagen aan de inschrijving. Gedeelde
 opnames zijn zichtbaar voor deelnemers met een geldige inschrijving.
-
-Laat deelnemers voor gedeeld gebruik dezelfde server openen via HTTPS. Draai de
-server achter een HTTPS-proxy met `--secure-cookie`.
 
 Bij inschrijving kies je een wachtwoord. Terugkerende deelnemers melden zich aan
 met e-mailadres én wachtwoord. Wie zo aanmeldt kan alleen opnames verwijderen
@@ -45,7 +38,7 @@ als SHA-256-hash bewaard. Deelnemers kunnen hun inschrijving zelf verwijderen.
 ## Tests
 
 ```bash
-node --test tests/wafelbak.test.js
+npm test
 ```
 
 ## Geluid
