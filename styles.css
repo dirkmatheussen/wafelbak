@@ -806,6 +806,15 @@ button {
   max-width: 420px;
 }
 
+.hp {
+  position: absolute;
+  left: -10000px;
+  top: auto;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+}
+
 .consent {
   display: flex;
   align-items: baseline;

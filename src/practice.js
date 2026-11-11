@@ -132,6 +132,7 @@
       partySize: partySize.value === "" ? null : partySize.valueAsNumber,
       arrivalTime: arrivalTime.value || null,
       consent: data.has("consent"),
+      website: String(data.get("website") || ""),
     };
     const { errors } = validateRegistration(input);
     if (!input.nickname) {
