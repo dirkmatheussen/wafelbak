@@ -83,10 +83,14 @@
     loginButton.disabled = true;
     loginStatus.textContent = "Aanmelden…";
     try {
+      const loginData = new FormData(loginForm);
       const { nickname } = await request("login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: new FormData(loginForm).get("email") }),
+        body: JSON.stringify({
+          email: loginData.get("email"),
+          password: loginData.get("password"),
+        }),
       });
       loginForm.reset();
       loginStatus.textContent = "";
@@ -105,10 +109,12 @@
     const count = form.elements.waffleCount;
     const partySize = form.elements.partySize;
     const arrivalTime = form.elements.arrivalTime;
+    const password = String(data.get("password") || "");
     const input = {
       name: data.get("name"),
       email: data.get("email"),
       nickname: String(data.get("nickname") || "").trim(),
+      password,
       waffleCount: count.value === "" ? null : count.valueAsNumber,
       partySize: partySize.value === "" ? null : partySize.valueAsNumber,
       arrivalTime: arrivalTime.value || null,
@@ -117,6 +123,9 @@
     const { errors } = validateRegistration(input);
     if (!input.nickname) {
       errors.nickname = "Kies een roepnaam.";
+    }
+    if (password.length < 8 || password.length > 128) {
+      errors.password = "Kies een wachtwoord van 8 tot 128 tekens.";
     }
     if (!count.validity.valid) {
       errors.waffleCount = "Geef een geheel aantal tussen 0 en 999 op.";
@@ -150,10 +159,6 @@
       start.focus();
     } catch (error) {
       formStatus.textContent = error.message;
-      if (error.status === 409) {
-        returning.open = true;
-        loginForm.elements.email.value = input.email;
-      }
     } finally {
       fields.disabled = false;
     }

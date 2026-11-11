@@ -3,8 +3,10 @@
 import argparse
 from contextlib import closing
 from datetime import datetime, timezone
+import hashlib
 from http.cookies import CookieError, SimpleCookie
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
+import hmac
 import io
 import json
 import mimetypes
@@ -21,14 +23,25 @@ import psycopg
 from psycopg.rows import dict_row
 
 ROOT = Path(__file__).resolve().parent
-MIGRATIONS = ROOT / "migrations" / "001_init.sql"
+MIGRATIONS = sorted((ROOT / "migrations").glob("*.sql"))
 COOKIE = "wafelbak_session"
 SESSION_SECONDS = 30 * 24 * 60 * 60
 MAX_SECONDS = 20
 MAX_AUDIO_BYTES = 3 * 1024 * 1024
+PASSWORD_MIN = 8
+PASSWORD_MAX = 128
+PBKDF2_ROUNDS = 260000
 AUDIO_ROUTE = re.compile(r"/api/recordings/([a-f0-9]{32})")
 EMAIL = re.compile(r"[^\s@]+@[^\s@]+\.[^\s@]+")
 ARRIVAL_TIME = re.compile(r"(?:[01][0-9]|2[0-3]):[0-5][0-9]")
+AUTH_ERROR = "E-mailadres of wachtwoord is onjuist."
+REGISTER_ERROR = "Inschrijving mislukt. Controleer je gegevens."
+# Fixed dummy hash so failed logins still pay the PBKDF2 cost.
+DUMMY_PASSWORD_HASH = (
+    "pbkdf2_sha256$260000$"
+    "00000000000000000000000000000000$"
+    "0000000000000000000000000000000000000000000000000000000000000000"
+)
 
 
 class RequestError(Exception):
@@ -54,14 +67,46 @@ def connect(url):
 
 
 def initialize(url):
-    schema = MIGRATIONS.read_text(encoding="utf-8")
     with closing(connect(url)) as db:
         with db.transaction():
-            db.execute(schema)
+            for path in MIGRATIONS:
+                db.execute(path.read_text(encoding="utf-8"))
 
 
 def timestamp():
     return datetime.now(timezone.utc).isoformat(timespec="seconds")
+
+
+def hash_password(password):
+    salt = secrets.token_bytes(16)
+    digest = hashlib.pbkdf2_hmac("sha256", password.encode("utf-8"), salt, PBKDF2_ROUNDS)
+    return f"pbkdf2_sha256${PBKDF2_ROUNDS}${salt.hex()}${digest.hex()}"
+
+
+def verify_password(password, stored):
+    try:
+        algorithm, rounds, salt_hex, digest_hex = stored.split("$", 3)
+        if algorithm != "pbkdf2_sha256":
+            return False
+        salt = bytes.fromhex(salt_hex)
+        expected = bytes.fromhex(digest_hex)
+        actual = hashlib.pbkdf2_hmac(
+            "sha256", password.encode("utf-8"), salt, int(rounds)
+        )
+        return hmac.compare_digest(actual, expected)
+    except (AttributeError, TypeError, ValueError):
+        return False
+
+
+def password_field(data):
+    password = data.get("password")
+    password = password if isinstance(password, str) else ""
+    if not PASSWORD_MIN <= len(password) <= PASSWORD_MAX:
+        raise RequestError(
+            400,
+            f"Kies een wachtwoord van {PASSWORD_MIN} tot {PASSWORD_MAX} tekens.",
+        )
+    return password
 
 
 def registration_fields(data):
@@ -80,6 +125,7 @@ def registration_fields(data):
 
     if not EMAIL.fullmatch(values["email"]):
         raise RequestError(400, "Geef een geldig e-mailadres.")
+    password = password_field(data)
     if data.get("consent") is not True:
         raise RequestError(400, "Geef toestemming voor het delen van je opnames.")
     count = data.get("waffleCount")
@@ -93,7 +139,15 @@ def registration_fields(data):
         not isinstance(arrival_time, str) or not ARRIVAL_TIME.fullmatch(arrival_time)
     ):
         raise RequestError(400, "Vul een geldig aankomstuur in.")
-    return values["name"], values["email"].lower(), values["nickname"], count, party_size, arrival_time
+    return (
+        values["name"],
+        values["email"].lower(),
+        values["nickname"],
+        password,
+        count,
+        party_size,
+        arrival_time,
+    )
 
 
 def audio_duration(data):
@@ -207,33 +261,44 @@ class WafelbakHandler(BaseHTTPRequestHandler):
             self.send_json(200, {"nickname": participant["nickname"]})
             return
 
-        name, email, nickname, count, party_size, arrival_time = registration_fields(self.json_body())
+        name, email, nickname, password, count, party_size, arrival_time = registration_fields(
+            self.json_body()
+        )
         token = secrets.token_urlsafe(32)
+        password_hash = hash_password(password)
         with db.transaction():
             if db.execute("SELECT 1 FROM participants WHERE email = %s", (email,)).fetchone():
-                raise RequestError(409, "Dit e-mailadres is al ingeschreven. Meld je hieronder aan.")
+                # Same generic copy as other registration failures: no email oracle.
+                raise RequestError(400, REGISTER_ERROR)
             db.execute(
                 """INSERT INTO participants
-                       (session, expires_at, name, email, nickname, waffle_count, party_size, arrival_time, created_at)
-                   VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)""",
+                       (session, expires_at, name, email, nickname, password_hash,
+                        waffle_count, party_size, arrival_time, created_at)
+                   VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)""",
                 (
                     token, int(time.time()) + SESSION_SECONDS, name, email, nickname,
-                    count, party_size, arrival_time, timestamp(),
+                    password_hash, count, party_size, arrival_time, timestamp(),
                 ),
             )
         self.send_session(201, nickname, token)
 
     def login(self, db):
-        email = self.json_body().get("email")
+        body = self.json_body()
+        email = body.get("email")
         email = email.strip().lower() if isinstance(email, str) else ""
-        if len(email) > 254 or not EMAIL.fullmatch(email):
-            raise RequestError(400, "Geef een geldig e-mailadres.")
+        password = body.get("password")
+        password = password if isinstance(password, str) else ""
+        if len(email) > 254 or not EMAIL.fullmatch(email) or not password:
+            raise RequestError(400, AUTH_ERROR)
+
         participant = db.execute(
-            "SELECT id, nickname FROM participants WHERE email = %s ORDER BY id DESC LIMIT 1",
+            """SELECT id, nickname, password_hash FROM participants
+               WHERE email = %s ORDER BY id DESC LIMIT 1""",
             (email,),
         ).fetchone()
-        if not participant:
-            raise RequestError(404, "Voor dit e-mailadres vonden we geen inschrijving.")
+        stored = participant["password_hash"] if participant else DUMMY_PASSWORD_HASH
+        if not verify_password(password, stored) or not participant:
+            raise RequestError(401, AUTH_ERROR)
 
         now = int(time.time())
         session = secrets.token_urlsafe(32)
