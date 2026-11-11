@@ -147,8 +147,8 @@
     if (!partySize.validity.valid) {
       errors.partySize = "Geef een geheel aantal tussen 1 en 999 op.";
     }
-    if (!arrivalTime.validity.valid) {
-      errors.arrivalTime = "Vul een geldig aankomstuur in.";
+    if (arrivalTime.value && !arrivalTime.validity.valid) {
+      errors.arrivalTime = "Kies een aankomstuur vanaf 15:00.";
     }
 
     for (const node of form.querySelectorAll("[data-error-for]")) {
