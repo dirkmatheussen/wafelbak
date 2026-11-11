@@ -1,0 +1,19 @@
+{
+  "name": "vliegende-wafelbak",
+  "version": "1.0.0",
+  "private": true,
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "build": "node scripts/migrate.mjs",
+    "start": "node server.mjs",
+    "dev": "node server.mjs",
+    "test": "node --test tests/wafelbak.test.js"
+  },
+  "dependencies": {
+    "@electric-sql/pglite": "^0.3.14",
+    "express": "^4.21.2",
+    "pg": "^8.16.3"
+  }
+}

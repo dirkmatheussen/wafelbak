@@ -132,6 +132,7 @@
       partySize: partySize.value === "" ? null : partySize.valueAsNumber,
       arrivalTime: arrivalTime.value || null,
       consent: data.has("consent"),
+      website: String(data.get("website") || ""),
     };
     const { errors } = validateRegistration(input);
     if (!input.nickname) {
@@ -489,10 +490,13 @@
       if (nickname) {
         showPractice(nickname);
       }
-      fields.disabled = false;
-      loginButton.disabled = false;
     } catch (error) {
       formStatus.textContent = error.message;
+    } finally {
+      // Always unlock the form once the session check finishes, even if the
+      // API is temporarily unavailable, so visitors can still type and retry.
+      fields.disabled = false;
+      loginButton.disabled = false;
     }
   }
 
