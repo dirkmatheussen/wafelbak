@@ -1,0 +1,160 @@
+<!doctype html>
+<html lang="nl">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Vliegende Wafelbak Monster — Belgisch Kampioenschap Eland Balken</title>
+    <meta
+      name="description"
+      content="Humoristische eventpagina voor het Belgisch Kampioenschap Eland Balken. Schrijf je in voor de Vliegende Wafelbak in Gent."
+    />
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <header class="hero" id="top">
+      <div class="hero__background"></div>
+      <nav class="nav">
+        <a class="logo" href="#top">🧇 Wafelbak Monster</a>
+        <div class="nav__links">
+          <a href="#eland-balken">Eland Balken</a>
+          <a href="#praktisch">Praktisch</a>
+          <a href="#inschrijven">Inschrijven</a>
+        </div>
+      </nav>
+      <section class="hero__content">
+        <p class="badge">presenteert · in Absurdistan</p>
+        <h1>Belgisch Kampioenschap <span>Eland Balken</span></h1>
+        <p class="lead">
+          Eerst 3 wafels binnen, dan pas de eland eruit. Een nobele, licht
+          absurde en vooral heerlijke sportdiscipline.
+        </p>
+        <div class="hero__meta">
+          <div><strong>Zondag 27 december</strong> · 15u tot …u</div>
+          <div><strong>De Mix</strong> · Zeugsteeg · Patershol Gent</div>
+          <div>Ten voordele van <strong>Kom op tegen Kanker</strong></div>
+        </div>
+        <a class="btn btn--primary" href="#inschrijven">Ik schrijf me in</a>
+      </section>
+    </header>
+
+    <main class="container">
+      <section class="card card--demo" id="eland-balken">
+        <div class="card__header">
+          <h2>Hoe ziet zo’n eland balken eruit?</h2>
+          <p>
+            Simpele wetenschap: <strong>3 wafels eten</strong> activeert het
+            zeldzame <em>eland-balkfenomeen</em>.
+          </p>
+        </div>
+        <div class="demo">
+          <div class="demo__controls">
+            <label for="waffleRange">Aantal wafels binnen:</label>
+            <input
+              type="range"
+              id="waffleRange"
+              min="0"
+              max="6"
+              step="1"
+              value="0"
+              aria-describedby="demoMessage"
+            />
+            <div class="counter">
+              <button id="minusWaffle" type="button" aria-label="Minder wafels">
+                −
+              </button>
+              <output id="waffleCountValue">0</output>
+              <button id="plusWaffle" type="button" aria-label="Meer wafels">
+                +
+              </button>
+            </div>
+            <p id="demoMessage" class="demo__message"></p>
+          </div>
+
+          <div class="demo__visual">
+            <div class="waffles" id="wafflesVisual" aria-hidden="true"></div>
+            <div class="eland" id="elandVisual" aria-live="polite">
+              <div class="eland__emoji">🫎</div>
+              <div class="eland__sound">BALKKKK!</div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="grid" id="praktisch">
+        <article class="card">
+          <h3>Jury met klasse</h3>
+          <p>
+            Onder streng en charmant toezicht van
+            <strong>Jo van Wafflé</strong>.
+          </p>
+        </article>
+        <article class="card">
+          <h3>Goede doel</h3>
+          <p>
+            Elke inschrijving steunt <strong>Kom op tegen Kanker</strong>. Pret
+            met impact.
+          </p>
+        </article>
+        <article class="card">
+          <h3>Locatie</h3>
+          <p>
+            <strong>De Mix</strong><br />
+            Zeugsteeg · Patershol<br />
+            Gent
+          </p>
+        </article>
+      </section>
+
+      <section class="card card--signup" id="inschrijven">
+        <div class="card__header">
+          <h2>Schrijf je in voor het kampioenschap</h2>
+          <p>
+            Vul je gegevens in. Je inschrijving verschijnt meteen in de
+            deelnemerslijst op dit toestel.
+          </p>
+        </div>
+        <form id="registrationForm" novalidate>
+          <div class="form-grid">
+            <label>
+              Naam *
+              <input type="text" name="name" autocomplete="name" />
+              <small class="error" data-error-for="name"></small>
+            </label>
+            <label>
+              E-mail *
+              <input type="email" name="email" autocomplete="email" />
+              <small class="error" data-error-for="email"></small>
+            </label>
+            <label>
+              Team / Club
+              <input type="text" name="team" />
+              <small class="error" data-error-for="team"></small>
+            </label>
+            <label>
+              Hoeveel wafels kan jij aan?
+              <input type="number" min="0" name="waffleCount" />
+              <small class="error" data-error-for="waffleCount"></small>
+            </label>
+          </div>
+          <label class="consent">
+            <input type="checkbox" name="consent" />
+            Ik ga akkoord dat mijn naam op de lokale deelnemerslijst verschijnt.
+          </label>
+          <small class="error" data-error-for="consent"></small>
+          <button class="btn btn--primary" type="submit">Inschrijving bewaren</button>
+          <p id="formStatus" class="form-status" aria-live="polite"></p>
+        </form>
+      </section>
+
+      <section class="card">
+        <h2>Lokale deelnemerslijst</h2>
+        <ul id="registrationsList" class="registrations"></ul>
+      </section>
+    </main>
+
+    <footer class="footer">Vliegend Wafelbak Monster · Absurdistan forever 🧇🫎</footer>
+
+    <script src="./src/lib/wafelbak.js"></script>
+    <script src="./src/main.js"></script>
+  </body>
+</html>
