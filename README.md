@@ -9,8 +9,15 @@ Gebruik Postgres via `DATABASE_URL`:
 
 ```bash
 python3 -m pip install -r requirements.txt
-export DATABASE_URL='postgresql://wafelbak:wafelbak@127.0.0.1:5432/wafelbak'
+export DATABASE_URL='postgresql://USER:PASSWORD@127.0.0.1:5432/wafelbak'
 python3 server.py
+```
+
+Of met gunicorn (zoals in productie):
+
+```bash
+export PORT=4173
+gunicorn --bind 127.0.0.1:4173 main:app
 ```
 
 Open daarna:
