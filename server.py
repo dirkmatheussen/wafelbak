@@ -31,11 +31,15 @@ MAX_AUDIO_BYTES = 3 * 1024 * 1024
 PASSWORD_MIN = 8
 PASSWORD_MAX = 128
 PBKDF2_ROUNDS = 260000
+MAX_PARTICIPANTS = 100
+MAX_RECORDINGS_PER_PARTICIPANT = 3
 AUDIO_ROUTE = re.compile(r"/api/recordings/([a-f0-9]{32})")
 EMAIL = re.compile(r"[^\s@]+@[^\s@]+\.[^\s@]+")
 ARRIVAL_TIME = re.compile(r"(?:[01][0-9]|2[0-3]):[0-5][0-9]")
 AUTH_ERROR = "E-mailadres of wachtwoord is onjuist."
 REGISTER_ERROR = "Inschrijving mislukt. Controleer je gegevens."
+REGISTER_FULL = "Inschrijvingen zijn vol (maximum 100)."
+UPLOAD_LIMIT = "Je hebt al het maximum van 3 opnames gedeeld."
 # Fixed dummy hash so failed logins still pay the PBKDF2 cost.
 DUMMY_PASSWORD_HASH = (
     "pbkdf2_sha256$260000$"
@@ -267,6 +271,9 @@ class WafelbakHandler(BaseHTTPRequestHandler):
         token = secrets.token_urlsafe(32)
         password_hash = hash_password(password)
         with db.transaction():
+            total = db.execute("SELECT COUNT(*) AS total FROM participants").fetchone()["total"]
+            if total >= MAX_PARTICIPANTS:
+                raise RequestError(403, REGISTER_FULL)
             if db.execute("SELECT 1 FROM participants WHERE email = %s", (email,)).fetchone():
                 # Same generic copy as other registration failures: no email oracle.
                 raise RequestError(400, REGISTER_ERROR)
@@ -328,6 +335,12 @@ class WafelbakHandler(BaseHTTPRequestHandler):
             duration = audio_duration(data)
             recording_id = uuid.uuid4().hex
             with db.transaction():
+                owned = db.execute(
+                    "SELECT COUNT(*) AS total FROM recordings WHERE participant_id = %s",
+                    (participant["id"],),
+                ).fetchone()["total"]
+                if owned >= MAX_RECORDINGS_PER_PARTICIPANT:
+                    raise RequestError(403, UPLOAD_LIMIT)
                 db.execute(
                     """INSERT INTO recordings (id, participant_id, created_at, duration, audio, creator_session)
                        VALUES (%s, %s, %s, %s, %s, %s)""",
