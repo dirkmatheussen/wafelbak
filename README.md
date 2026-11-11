@@ -31,6 +31,9 @@ Bij inschrijving kies je een wachtwoord. Terugkerende deelnemers melden zich aan
 met e-mailadres én wachtwoord. Wie zo aanmeldt kan alleen opnames verwijderen
 die in de huidige browsersessie zijn gedeeld.
 
+Er geldt een maximum van **100 inschrijvingen** en **3 gedeelde opnames per
+deelnemer**.
+
 ## Tests
 
 ```bash
