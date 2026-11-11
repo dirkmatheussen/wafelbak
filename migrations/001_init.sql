@@ -14,7 +14,7 @@ CREATE TABLE IF NOT EXISTS participants (
 
 CREATE TABLE IF NOT EXISTS recordings (
     id TEXT PRIMARY KEY,
-    participant_id BIGINT NOT NULL REFERENCES participants(id),
+    participant_id BIGINT NOT NULL REFERENCES participants(id) ON DELETE CASCADE,
     created_at TEXT NOT NULL,
     duration DOUBLE PRECISION NOT NULL,
     audio BYTEA NOT NULL,
@@ -23,9 +23,16 @@ CREATE TABLE IF NOT EXISTS recordings (
 
 CREATE TABLE IF NOT EXISTS login_sessions (
     session TEXT PRIMARY KEY,
-    participant_id BIGINT NOT NULL REFERENCES participants(id),
+    participant_id BIGINT NOT NULL REFERENCES participants(id) ON DELETE CASCADE,
     expires_at BIGINT NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS rate_limits (
+    bucket TEXT PRIMARY KEY,
+    count INTEGER NOT NULL,
+    window_start BIGINT NOT NULL
 );
 
 CREATE UNIQUE INDEX IF NOT EXISTS participants_email_unique ON participants(email);
 CREATE INDEX IF NOT EXISTS recordings_created_at ON recordings(created_at DESC);
+CREATE INDEX IF NOT EXISTS recordings_participant ON recordings(participant_id);

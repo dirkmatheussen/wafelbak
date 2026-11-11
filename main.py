@@ -24,18 +24,23 @@ COOKIE = "wafelbak_session"
 SESSION_SECONDS = 30 * 24 * 60 * 60
 MAX_SECONDS = 20
 MAX_AUDIO_BYTES = 3 * 1024 * 1024
+MAX_JSON_BYTES = 8192
 PASSWORD_MIN = 8
 PASSWORD_MAX = 128
 PBKDF2_ROUNDS = 260000
 MAX_PARTICIPANTS = 100
 MAX_RECORDINGS_PER_PARTICIPANT = 3
-AUDIO_ROUTE = re.compile(r"^/api/recordings/([a-f0-9]{32})$")
+REGISTER_LIMIT = 5
+REGISTER_WINDOW = 3600
+LOGIN_LIMIT = 10
+LOGIN_WINDOW = 900
 EMAIL = re.compile(r"[^\s@]+@[^\s@]+\.[^\s@]+")
 ARRIVAL_TIME = re.compile(r"(?:[01][0-9]|2[0-3]):[0-5][0-9]")
 AUTH_ERROR = "E-mailadres of wachtwoord is onjuist."
 REGISTER_ERROR = "Inschrijving mislukt. Controleer je gegevens."
 REGISTER_FULL = "Inschrijvingen zijn vol (maximum 100)."
 UPLOAD_LIMIT = "Je hebt al het maximum van 3 opnames gedeeld."
+RATE_LIMIT_ERROR = "Te veel pogingen. Probeer later opnieuw."
 DUMMY_PASSWORD_HASH = (
     "pbkdf2_sha256$260000$"
     "00000000000000000000000000000000$"
@@ -74,6 +79,17 @@ def initialize(url=None):
 
 def timestamp():
     return datetime.now(timezone.utc).isoformat(timespec="seconds")
+
+
+def client_ip():
+    forwarded = request.headers.get("X-Forwarded-For", "")
+    if forwarded:
+        return forwarded.split(",")[0].strip()[:64] or "unknown"
+    return (request.remote_addr or "unknown")[:64]
+
+
+def token_hash(token):
+    return hashlib.sha256(token.encode("utf-8")).hexdigest()
 
 
 def hash_password(password):
@@ -207,15 +223,78 @@ def session_cookie(response, token):
     return response
 
 
+def clear_session_cookie(response):
+    response.set_cookie(
+        COOKIE,
+        "",
+        max_age=0,
+        path="/",
+        httponly=True,
+        samesite="Strict",
+        secure=use_secure_cookie(),
+    )
+    return response
+
+
+def enforce_content_length(limit):
+    raw = request.headers.get("Content-Length")
+    if raw is None:
+        raise RequestError(411, "Content-Length is verplicht.")
+    try:
+        size = int(raw)
+    except ValueError as error:
+        raise RequestError(400, "Ongeldige Content-Length.") from error
+    if size <= 0:
+        raise RequestError(400, "De aanvraag bevat geen gegevens.")
+    if size > limit:
+        raise RequestError(413, "Dit bestand is te groot.")
+    return size
+
+
+def read_json(limit=MAX_JSON_BYTES):
+    enforce_content_length(limit)
+    if request.mimetype != "application/json":
+        raise RequestError(415, "Dit bestandstype wordt niet ondersteund.")
+    data = request.get_json(silent=True)
+    if not isinstance(data, dict):
+        raise RequestError(400, "De aanvraag is onleesbaar.")
+    return data
+
+
+def hit_rate_limit(db, bucket, limit, window_seconds):
+    now = int(time.time())
+    with db.transaction():
+        row = db.execute(
+            "SELECT count, window_start FROM rate_limits WHERE bucket = %s FOR UPDATE",
+            (bucket,),
+        ).fetchone()
+        if not row or now - row["window_start"] >= window_seconds:
+            db.execute(
+                """INSERT INTO rate_limits (bucket, count, window_start)
+                   VALUES (%s, 1, %s)
+                   ON CONFLICT (bucket) DO UPDATE
+                   SET count = 1, window_start = EXCLUDED.window_start""",
+                (bucket, now),
+            )
+            return
+        if row["count"] >= limit:
+            raise RequestError(429, RATE_LIMIT_ERROR)
+        db.execute(
+            "UPDATE rate_limits SET count = count + 1 WHERE bucket = %s",
+            (bucket,),
+        )
+
+
 def current_participant(db):
     token = request.cookies.get(COOKIE)
     if not token:
         return None
+    digest = token_hash(token)
     now = int(time.time())
     participant = db.execute(
         """SELECT id, nickname, session, TRUE AS primary_session FROM participants
            WHERE session = %s AND expires_at > %s""",
-        (token, now),
+        (digest, now),
     ).fetchone()
     if participant:
         return participant
@@ -223,7 +302,7 @@ def current_participant(db):
         """SELECT p.id, p.nickname, s.session, FALSE AS primary_session
            FROM login_sessions AS s JOIN participants AS p ON p.id = s.participant_id
            WHERE s.session = %s AND s.expires_at > %s""",
-        (token, now),
+        (digest, now),
     ).fetchone()
 
 
@@ -234,6 +313,8 @@ def guard_mutating_origin():
 
 def create_app():
     application = Flask(__name__)
+    application.config["MAX_CONTENT_LENGTH"] = MAX_AUDIO_BYTES
+
     if os.environ.get("DATABASE_URL"):
         initialize()
     elif os.environ.get("PORT"):
@@ -242,6 +323,10 @@ def create_app():
     @application.errorhandler(RequestError)
     def handle_request_error(error):
         return json_error(error)
+
+    @application.errorhandler(413)
+    def handle_too_large(_error):
+        return json_error(RequestError(413, "Dit bestand is te groot."))
 
     @application.get("/api/session")
     def api_session():
@@ -256,56 +341,66 @@ def create_app():
     @application.post("/api/register")
     def api_register():
         guard_mutating_origin()
+        data = read_json()
         with closing(connect()) as db:
             participant = current_participant(db)
             if participant:
-                response = jsonify({"nickname": participant["nickname"]})
+                response = jsonify({"ok": True, "nickname": participant["nickname"]})
                 response.headers["Cache-Control"] = "no-store"
                 return response
 
-            data = request.get_json(silent=True)
+            hit_rate_limit(
+                db, f"register:ip:{client_ip()}", REGISTER_LIMIT, REGISTER_WINDOW
+            )
             name, email, nickname, password, count, party_size, arrival_time = (
                 registration_fields(data)
             )
             token = secrets.token_urlsafe(32)
+            digest = token_hash(token)
             password_hash = hash_password(password)
+            created = False
             with db.transaction():
                 total = db.execute(
                     "SELECT COUNT(*) AS total FROM participants"
                 ).fetchone()["total"]
                 if total >= MAX_PARTICIPANTS:
                     raise RequestError(403, REGISTER_FULL)
-                if db.execute(
+                existing = db.execute(
                     "SELECT 1 FROM participants WHERE email = %s", (email,)
-                ).fetchone():
-                    raise RequestError(400, REGISTER_ERROR)
-                db.execute(
-                    """INSERT INTO participants
-                           (session, expires_at, name, email, nickname, password_hash,
-                            waffle_count, party_size, arrival_time, created_at)
-                       VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)""",
-                    (
-                        token,
-                        int(time.time()) + SESSION_SECONDS,
-                        name,
-                        email,
-                        nickname,
-                        password_hash,
-                        count,
-                        party_size,
-                        arrival_time,
-                        timestamp(),
-                    ),
-                )
-            response = jsonify({"nickname": nickname})
-            response.status_code = 201
+                ).fetchone()
+                if not existing:
+                    db.execute(
+                        """INSERT INTO participants
+                               (session, expires_at, name, email, nickname, password_hash,
+                                waffle_count, party_size, arrival_time, created_at)
+                           VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)""",
+                        (
+                            digest,
+                            int(time.time()) + SESSION_SECONDS,
+                            name,
+                            email,
+                            nickname,
+                            password_hash,
+                            count,
+                            party_size,
+                            arrival_time,
+                            timestamp(),
+                        ),
+                    )
+                    created = True
+
+            # Same response shape whether the email was new or already known.
+            response = jsonify({"ok": True})
+            response.status_code = 200
             response.headers["Cache-Control"] = "no-store"
-            return session_cookie(response, token)
+            if created:
+                return session_cookie(response, token)
+            return response
 
     @application.post("/api/login")
     def api_login():
         guard_mutating_origin()
-        body = request.get_json(silent=True) or {}
+        body = read_json()
         email = body.get("email")
         email = email.strip().lower() if isinstance(email, str) else ""
         password = body.get("password")
@@ -314,6 +409,9 @@ def create_app():
             raise RequestError(400, AUTH_ERROR)
 
         with closing(connect()) as db:
+            hit_rate_limit(db, f"login:ip:{client_ip()}", LOGIN_LIMIT, LOGIN_WINDOW)
+            hit_rate_limit(db, f"login:email:{email}", LOGIN_LIMIT, LOGIN_WINDOW)
+
             participant = db.execute(
                 """SELECT id, nickname, password_hash FROM participants
                    WHERE email = %s ORDER BY id DESC LIMIT 1""",
@@ -324,17 +422,33 @@ def create_app():
                 raise RequestError(401, AUTH_ERROR)
 
             now = int(time.time())
-            session = secrets.token_urlsafe(32)
+            token = secrets.token_urlsafe(32)
+            digest = token_hash(token)
             with db.transaction():
                 db.execute("DELETE FROM login_sessions WHERE expires_at <= %s", (now,))
                 db.execute(
                     """INSERT INTO login_sessions (session, participant_id, expires_at)
                        VALUES (%s, %s, %s)""",
-                    (session, participant["id"], now + SESSION_SECONDS),
+                    (digest, participant["id"], now + SESSION_SECONDS),
                 )
             response = jsonify({"nickname": participant["nickname"]})
             response.headers["Cache-Control"] = "no-store"
-            return session_cookie(response, session)
+            return session_cookie(response, token)
+
+    @application.delete("/api/account")
+    def api_delete_account():
+        guard_mutating_origin()
+        with closing(connect()) as db:
+            participant = current_participant(db)
+            if not participant:
+                raise RequestError(401, "Schrijf je eerst in.")
+            with db.transaction():
+                db.execute(
+                    "DELETE FROM participants WHERE id = %s", (participant["id"],)
+                )
+            response = jsonify({"ok": True})
+            response.headers["Cache-Control"] = "no-store"
+            return clear_session_cookie(response)
 
     @application.get("/api/recordings")
     def api_recordings_list():
@@ -364,20 +478,27 @@ def create_app():
     @application.post("/api/recordings")
     def api_recordings_create():
         guard_mutating_origin()
+        enforce_content_length(MAX_AUDIO_BYTES)
         if request.mimetype != "audio/wav":
             raise RequestError(415, "Dit bestandstype wordt niet ondersteund.")
-        data = request.get_data(cache=False)
-        if not data:
-            raise RequestError(400, "De aanvraag bevat geen gegevens.")
-        if len(data) > MAX_AUDIO_BYTES:
-            raise RequestError(413, "Dit bestand is te groot.")
-        duration = audio_duration(data)
-        recording_id = uuid.uuid4().hex
+
         with closing(connect()) as db:
             participant = current_participant(db)
             if not participant:
                 raise RequestError(401, "Schrijf je eerst in.")
+
+            data = request.get_data(cache=False)
+            if not data:
+                raise RequestError(400, "De aanvraag bevat geen gegevens.")
+            if len(data) > MAX_AUDIO_BYTES:
+                raise RequestError(413, "Dit bestand is te groot.")
+            duration = audio_duration(data)
+            recording_id = uuid.uuid4().hex
             with db.transaction():
+                db.execute(
+                    "SELECT id FROM participants WHERE id = %s FOR UPDATE",
+                    (participant["id"],),
+                ).fetchone()
                 owned = db.execute(
                     "SELECT COUNT(*) AS total FROM recordings WHERE participant_id = %s",
                     (participant["id"],),

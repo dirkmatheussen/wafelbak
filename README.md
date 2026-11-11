@@ -39,7 +39,8 @@ met e-mailadres én wachtwoord. Wie zo aanmeldt kan alleen opnames verwijderen
 die in de huidige browsersessie zijn gedeeld.
 
 Er geldt een maximum van **100 inschrijvingen** en **3 gedeelde opnames per
-deelnemer**.
+deelnemer**. Inschrijven en aanmelden zijn rate-limited. Sessietokens worden
+als SHA-256-hash bewaard. Deelnemers kunnen hun inschrijving zelf verwijderen.
 
 ## Tests
 
