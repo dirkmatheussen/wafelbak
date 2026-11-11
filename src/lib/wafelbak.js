@@ -7,6 +7,9 @@
     root.WafelbakLib = api;
   }
 })(typeof globalThis !== "undefined" ? globalThis : this, function () {
+  const WAFFLES_PER_ROUND = 3;
+  const ROUND_SECONDS = 20;
+
   function cleanText(value) {
     return String(value ?? "").trim();
   }
@@ -20,19 +23,25 @@
   }
 
   function getElandBalkenState(waffleCount) {
-    const count = Number.isFinite(waffleCount) ? waffleCount : 0;
+    const count = Number.isFinite(waffleCount) ? Math.floor(waffleCount) : 0;
+    const rounds = Math.floor(count / WAFFLES_PER_ROUND);
 
-    if (count >= 3) {
+    if (rounds >= 1) {
+      const duration = `${ROUND_SECONDS} seconden`;
       return {
         stage: "ready",
-        message: "Eland gespot! Je mag nu voluit balken.",
+        message:
+          rounds === 1
+            ? `Eland gespot! Laat je ${duration} horen.`
+            : `Eland gespot! Je hebt ${rounds} beurten van ${duration}.`,
       };
     }
 
     if (count >= 1) {
+      const remaining = WAFFLES_PER_ROUND - count;
       return {
         stage: "warming-up",
-        message: `Nog ${3 - count} wafel(s) te gaan voor de eland verschijnt.`,
+        message: `Nog ${remaining} ${remaining === 1 ? "wafel" : "wafels"} voor je eerste beurt.`,
       };
     }
 
@@ -94,6 +103,7 @@
   }
 
   return {
+    ROUND_SECONDS,
     getElandBalkenState,
     validateRegistration,
     createRegistration,
