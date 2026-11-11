@@ -18,7 +18,7 @@ Open daarna:
 `http://127.0.0.1:4173`
 
 Inschrijvingen en gedeelde opnames worden bewaard in Postgres. Bij start past de
-server het schema uit `migrations/001_init.sql` toe. Cursor Apps voorziet
+server de SQL-bestanden in `migrations/` toe. Cursor Apps voorziet
 `DATABASE_URL` automatisch via `cursor-app.json`.
 
 Een sessiecookie koppelt de browser 30 dagen aan de inschrijving. Gedeelde
@@ -27,10 +27,9 @@ opnames zijn zichtbaar voor deelnemers met een geldige inschrijving.
 Laat deelnemers voor gedeeld gebruik dezelfde server openen via HTTPS. Draai de
 server achter een HTTPS-proxy met `--secure-cookie`.
 
-Terugkerende deelnemers voeren het e-mailadres van hun inschrijving in om
-opnieuw te oefenen en opnames te beluisteren. De server controleert of het adres
-geregistreerd is. Wie zo aanmeldt kan alleen opnames verwijderen die in de
-huidige browsersessie zijn gedeeld.
+Bij inschrijving kies je een wachtwoord. Terugkerende deelnemers melden zich aan
+met e-mailadres én wachtwoord. Wie zo aanmeldt kan alleen opnames verwijderen
+die in de huidige browsersessie zijn gedeeld.
 
 ## Tests
 

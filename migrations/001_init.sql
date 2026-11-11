@@ -5,6 +5,7 @@ CREATE TABLE IF NOT EXISTS participants (
     name TEXT NOT NULL,
     email TEXT NOT NULL,
     nickname TEXT NOT NULL,
+    password_hash TEXT NOT NULL,
     waffle_count INTEGER,
     party_size INTEGER,
     arrival_time TEXT,
@@ -26,5 +27,5 @@ CREATE TABLE IF NOT EXISTS login_sessions (
     expires_at BIGINT NOT NULL
 );
 
-CREATE INDEX IF NOT EXISTS participants_email ON participants(email);
+CREATE UNIQUE INDEX IF NOT EXISTS participants_email_unique ON participants(email);
 CREATE INDEX IF NOT EXISTS recordings_created_at ON recordings(created_at DESC);

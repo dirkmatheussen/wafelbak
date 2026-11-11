@@ -206,6 +206,11 @@
                   <small class="error" id="email-error" data-error-for="email"></small>
                 </label>
                 <label>
+                  Wachtwoord (verplicht)
+                  <input type="password" name="password" autocomplete="new-password" minlength="8" maxlength="128" required aria-describedby="password-error" />
+                  <small class="error" id="password-error" data-error-for="password"></small>
+                </label>
+                <label>
                   Roepnaam (verplicht)
                   <input type="text" name="nickname" autocomplete="nickname" maxlength="40" required aria-describedby="nickname-error" />
                   <small class="error" id="nickname-error" data-error-for="nickname"></small>
@@ -240,7 +245,11 @@
             <form id="loginForm">
               <label>
                 E-mailadres van je inschrijving
-                <input type="email" name="email" autocomplete="email" maxlength="254" required />
+                <input type="email" name="email" autocomplete="username" maxlength="254" required />
+              </label>
+              <label>
+                Wachtwoord
+                <input type="password" name="password" autocomplete="current-password" minlength="8" maxlength="128" required />
               </label>
               <button class="button button--blue" type="submit" disabled>Aanmelden</button>
               <p id="loginStatus" class="form-status" role="status"></p>
