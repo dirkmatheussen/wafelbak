@@ -1,4 +1,4 @@
-"""Serve the Wafelbak site and its shared practice recordings."""
+"""Serve the Wafelbak site and its shared practice recordings on Postgres."""
 
 import argparse
 from contextlib import closing
@@ -8,16 +8,20 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 import io
 import json
 import mimetypes
+import os
 from pathlib import Path
 import re
 import secrets
-import sqlite3
 import time
 from urllib.parse import unquote, urlsplit
 import uuid
 import wave
 
+import psycopg
+from psycopg.rows import dict_row
+
 ROOT = Path(__file__).resolve().parent
+MIGRATIONS = ROOT / "migrations" / "001_init.sql"
 COOKIE = "wafelbak_session"
 SESSION_SECONDS = 30 * 24 * 60 * 60
 MAX_SECONDS = 20
@@ -33,56 +37,27 @@ class RequestError(Exception):
         self.message = message
 
 
-def connect(path):
-    db = sqlite3.connect(path)
-    db.row_factory = sqlite3.Row
-    db.execute("PRAGMA foreign_keys = ON")
-    return db
+def database_url(value=None):
+    url = value or os.environ.get("DATABASE_URL")
+    if not url:
+        raise SystemExit(
+            "DATABASE_URL is verplicht. Zet die op je Postgres-connectiestring "
+            "(Cursor Apps voorziet die automatisch)."
+        )
+    return url
 
 
-def initialize(path):
-    path.parent.mkdir(mode=0o700, parents=True, exist_ok=True)
-    path.touch(mode=0o600, exist_ok=True)
-    with closing(connect(path)) as db:
-        db.execute("PRAGMA journal_mode = WAL")
-        db.executescript("""
-            CREATE TABLE IF NOT EXISTS participants (
-                id INTEGER PRIMARY KEY,
-                session TEXT NOT NULL UNIQUE,
-                expires_at INTEGER NOT NULL,
-                name TEXT NOT NULL,
-                email TEXT NOT NULL,
-                nickname TEXT NOT NULL,
-                waffle_count INTEGER,
-                party_size INTEGER,
-                arrival_time TEXT,
-                created_at TEXT NOT NULL
-            );
-            CREATE TABLE IF NOT EXISTS recordings (
-                id TEXT PRIMARY KEY,
-                participant_id INTEGER NOT NULL REFERENCES participants(id),
-                created_at TEXT NOT NULL,
-                duration REAL NOT NULL,
-                audio BLOB NOT NULL,
-                creator_session TEXT
-            );
-            CREATE TABLE IF NOT EXISTS login_sessions (
-                session TEXT PRIMARY KEY,
-                participant_id INTEGER NOT NULL REFERENCES participants(id),
-                expires_at INTEGER NOT NULL
-            );
-            CREATE INDEX IF NOT EXISTS participants_email ON participants(email);
-        """)
-        with db:
-            db.execute("BEGIN IMMEDIATE")
-            columns = {column["name"] for column in db.execute("PRAGMA table_info(participants)")}
-            if "party_size" not in columns:
-                db.execute("ALTER TABLE participants ADD COLUMN party_size INTEGER")
-            if "arrival_time" not in columns:
-                db.execute("ALTER TABLE participants ADD COLUMN arrival_time TEXT")
-            recording_columns = {column["name"] for column in db.execute("PRAGMA table_info(recordings)")}
-            if "creator_session" not in recording_columns:
-                db.execute("ALTER TABLE recordings ADD COLUMN creator_session TEXT")
+def connect(url):
+    # Autocommit so read queries don't leave an open transaction that would
+    # roll back nested write blocks when the request connection closes.
+    return psycopg.connect(url, row_factory=dict_row, autocommit=True)
+
+
+def initialize(url):
+    schema = MIGRATIONS.read_text(encoding="utf-8")
+    with closing(connect(url)) as db:
+        with db.transaction():
+            db.execute(schema)
 
 
 def timestamp():
@@ -139,6 +114,16 @@ def audio_duration(data):
         raise RequestError(415, f"Dit is geen geldig geluidsfragment van maximaal {MAX_SECONDS} seconden.") from error
 
 
+def serialize_recording(item):
+    return {
+        "id": item["id"],
+        "nickname": item["nickname"],
+        "created_at": item["created_at"],
+        "duration": float(item["duration"]),
+        "own": bool(item["own"]),
+    }
+
+
 class WafelbakHandler(BaseHTTPRequestHandler):
     def send_payload(self, status, content_type, payload, **headers):
         self.send_response(status)
@@ -185,16 +170,16 @@ class WafelbakHandler(BaseHTTPRequestHandler):
             return None
         now = int(time.time())
         participant = db.execute(
-            """SELECT id, nickname, session, 1 AS primary_session FROM participants
-               WHERE session = ? AND expires_at > ?""",
+            """SELECT id, nickname, session, TRUE AS primary_session FROM participants
+               WHERE session = %s AND expires_at > %s""",
             (session.value, now),
         ).fetchone()
         if participant:
             return participant
         return db.execute(
-            """SELECT p.id, p.nickname, s.session, 0 AS primary_session
+            """SELECT p.id, p.nickname, s.session, FALSE AS primary_session
                FROM login_sessions AS s JOIN participants AS p ON p.id = s.participant_id
-               WHERE s.session = ? AND s.expires_at > ?""",
+               WHERE s.session = %s AND s.expires_at > %s""",
             (session.value, now),
         ).fetchone()
 
@@ -224,14 +209,13 @@ class WafelbakHandler(BaseHTTPRequestHandler):
 
         name, email, nickname, count, party_size, arrival_time = registration_fields(self.json_body())
         token = secrets.token_urlsafe(32)
-        with db:
-            db.execute("BEGIN IMMEDIATE")
-            if db.execute("SELECT 1 FROM participants WHERE email = ?", (email,)).fetchone():
+        with db.transaction():
+            if db.execute("SELECT 1 FROM participants WHERE email = %s", (email,)).fetchone():
                 raise RequestError(409, "Dit e-mailadres is al ingeschreven. Meld je hieronder aan.")
             db.execute(
                 """INSERT INTO participants
                        (session, expires_at, name, email, nickname, waffle_count, party_size, arrival_time, created_at)
-                   VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)""",
+                   VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)""",
                 (
                     token, int(time.time()) + SESSION_SECONDS, name, email, nickname,
                     count, party_size, arrival_time, timestamp(),
@@ -245,17 +229,18 @@ class WafelbakHandler(BaseHTTPRequestHandler):
         if len(email) > 254 or not EMAIL.fullmatch(email):
             raise RequestError(400, "Geef een geldig e-mailadres.")
         participant = db.execute(
-            "SELECT id, nickname FROM participants WHERE email = ? ORDER BY id DESC LIMIT 1", (email,)
+            "SELECT id, nickname FROM participants WHERE email = %s ORDER BY id DESC LIMIT 1",
+            (email,),
         ).fetchone()
         if not participant:
             raise RequestError(404, "Voor dit e-mailadres vonden we geen inschrijving.")
 
         now = int(time.time())
         session = secrets.token_urlsafe(32)
-        with db:
-            db.execute("DELETE FROM login_sessions WHERE expires_at <= ?", (now,))
+        with db.transaction():
+            db.execute("DELETE FROM login_sessions WHERE expires_at <= %s", (now,))
             db.execute(
-                "INSERT INTO login_sessions VALUES (?, ?, ?)",
+                "INSERT INTO login_sessions (session, participant_id, expires_at) VALUES (%s, %s, %s)",
                 (session, participant["id"], now + SESSION_SECONDS),
             )
         self.send_session(200, participant["nickname"], session)
@@ -263,41 +248,41 @@ class WafelbakHandler(BaseHTTPRequestHandler):
     def recordings(self, db, participant, path, offset):
         match = AUDIO_ROUTE.fullmatch(path)
         # Email-only sign-in grants playback and recording, not control of earlier uploads.
-        owner = (participant["id"], participant["primary_session"], participant["session"])
+        owner = (participant["id"], bool(participant["primary_session"]), participant["session"])
         if path == "/api/recordings" and self.command == "GET":
             items = db.execute(
                 """SELECT r.id, p.nickname, r.created_at, r.duration,
-                          (r.participant_id = ? AND (? OR r.creator_session = ?)) AS own
+                          (r.participant_id = %s AND (%s OR r.creator_session = %s)) AS own
                    FROM recordings AS r JOIN participants AS p ON p.id = r.participant_id
-                   ORDER BY r.created_at DESC, r.rowid DESC LIMIT 25 OFFSET ?""",
+                   ORDER BY r.created_at DESC, r.id DESC LIMIT 25 OFFSET %s""",
                 (*owner, offset),
             ).fetchall()
-            self.send_json(200, {"items": [dict(item) for item in items]})
+            self.send_json(200, {"items": [serialize_recording(item) for item in items]})
         elif path == "/api/recordings" and self.command == "POST":
             data = self.read_payload(MAX_AUDIO_BYTES, "audio/wav")
             duration = audio_duration(data)
             recording_id = uuid.uuid4().hex
-            db.execute(
-                """INSERT INTO recordings (id, participant_id, created_at, duration, audio, creator_session)
-                   VALUES (?, ?, ?, ?, ?, ?)""",
-                (recording_id, participant["id"], timestamp(), duration, data, participant["session"]),
-            )
-            db.commit()
+            with db.transaction():
+                db.execute(
+                    """INSERT INTO recordings (id, participant_id, created_at, duration, audio, creator_session)
+                       VALUES (%s, %s, %s, %s, %s, %s)""",
+                    (recording_id, participant["id"], timestamp(), duration, data, participant["session"]),
+                )
             self.send_json(201, {"id": recording_id})
         elif match and self.command in ("GET", "HEAD"):
-            row = db.execute("SELECT audio FROM recordings WHERE id = ?", (match[1],)).fetchone()
+            row = db.execute("SELECT audio FROM recordings WHERE id = %s", (match[1],)).fetchone()
             if not row:
                 raise RequestError(404, "Deze opname bestaat niet meer.")
-            self.send_audio(row["audio"])
+            self.send_audio(bytes(row["audio"]))
         elif match and self.command == "DELETE":
-            result = db.execute(
-                """DELETE FROM recordings
-                   WHERE id = ? AND participant_id = ? AND (? OR creator_session = ?)""",
-                (match[1], *owner),
-            )
-            if not result.rowcount:
-                raise RequestError(404, "Deze opname is niet beschikbaar om te verwijderen.")
-            db.commit()
+            with db.transaction():
+                result = db.execute(
+                    """DELETE FROM recordings
+                       WHERE id = %s AND participant_id = %s AND (%s OR creator_session = %s)""",
+                    (match[1], *owner),
+                )
+                if result.rowcount == 0:
+                    raise RequestError(404, "Deze opname is niet beschikbaar om te verwijderen.")
             self.send_json(200, {})
         else:
             raise RequestError(404, "Deze pagina bestaat niet.")
@@ -354,7 +339,7 @@ class WafelbakHandler(BaseHTTPRequestHandler):
 
             if self.command in ("POST", "DELETE") and self.headers.get("Sec-Fetch-Site") == "cross-site":
                 raise RequestError(403, "Open eerst de Wafelbak-site.")
-            with closing(connect(self.server.database)) as db:
+            with closing(connect(self.server.database_url)) as db:
                 participant = self.participant(db)
                 if path == "/api/session" and self.command == "GET":
                     self.send_json(200, {"nickname": participant["nickname"] if participant else None})
@@ -374,16 +359,23 @@ class WafelbakHandler(BaseHTTPRequestHandler):
 
 
 if __name__ == "__main__":
+    default_port = int(os.environ.get("PORT", "4173"))
+    default_host = "0.0.0.0" if os.environ.get("PORT") else "127.0.0.1"
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--host", default="127.0.0.1")
-    parser.add_argument("--port", type=int, default=4173)
-    parser.add_argument("--db", type=Path, default=ROOT / ".wafelbak" / "practice.sqlite3")
+    parser.add_argument("--host", default=default_host)
+    parser.add_argument("--port", type=int, default=default_port)
+    parser.add_argument(
+        "--database-url",
+        default=None,
+        help="Postgres URL (default: DATABASE_URL environment variable)",
+    )
     parser.add_argument("--secure-cookie", action="store_true", help="use behind HTTPS")
     args = parser.parse_args()
-    initialize(args.db)
+    url = database_url(args.database_url)
+    initialize(url)
     with ThreadingHTTPServer((args.host, args.port), WafelbakHandler) as server:
-        server.database = args.db
-        server.secure_cookie = args.secure_cookie
+        server.database_url = url
+        server.secure_cookie = args.secure_cookie or bool(os.environ.get("PORT"))
         print(f"Wafelbak: http://{args.host}:{args.port}", flush=True)
         try:
             server.serve_forever()

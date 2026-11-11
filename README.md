@@ -5,7 +5,11 @@ Humoristische en aantrekkelijke eventsite voor de **Vliegende Wafelbak** en het
 
 ## Lokaal draaien
 
+Gebruik Postgres via `DATABASE_URL`:
+
 ```bash
+python3 -m pip install -r requirements.txt
+export DATABASE_URL='postgresql://wafelbak:wafelbak@127.0.0.1:5432/wafelbak'
 python3 server.py
 ```
 
@@ -13,13 +17,15 @@ Open daarna:
 
 `http://127.0.0.1:4173`
 
-Inschrijvingen en gedeelde opnames worden bewaard in `.wafelbak/practice.sqlite3`.
-Een sessiecookie koppelt de browser 30 dagen aan de inschrijving. Gedeelde opnames
-zijn zichtbaar voor deelnemers met een geldige inschrijving.
+Inschrijvingen en gedeelde opnames worden bewaard in Postgres. Bij start past de
+server het schema uit `migrations/001_init.sql` toe. Cursor Apps voorziet
+`DATABASE_URL` automatisch via `cursor-app.json`.
+
+Een sessiecookie koppelt de browser 30 dagen aan de inschrijving. Gedeelde
+opnames zijn zichtbaar voor deelnemers met een geldige inschrijving.
 
 Laat deelnemers voor gedeeld gebruik dezelfde server openen via HTTPS. Draai de
-server achter de HTTPS-proxy van de besloten site met `--secure-cookie` en bewaar
-de SQLite-database op een blijvend volume. Met `--db` kies je het bestandspad.
+server achter een HTTPS-proxy met `--secure-cookie`.
 
 Terugkerende deelnemers voeren het e-mailadres van hun inschrijving in om
 opnieuw te oefenen en opnames te beluisteren. De server controleert of het adres
