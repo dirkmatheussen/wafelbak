@@ -1,0 +1,348 @@
+:root {
+  --bg: #120f1f;
+  --panel: #1d1730;
+  --panel-soft: #2b2145;
+  --text: #fdf7ff;
+  --muted: #d5c7e8;
+  --accent: #f59e0b;
+  --accent-2: #f43f5e;
+  --ok: #22c55e;
+  --error: #fb7185;
+  --shadow: 0 14px 40px rgba(0, 0, 0, 0.25);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: "Inter", "Avenir Next", "Segoe UI", sans-serif;
+  background: radial-gradient(circle at top right, #2a1849, var(--bg) 48%);
+  color: var(--text);
+  line-height: 1.5;
+}
+
+.hero {
+  position: relative;
+  padding: 1.2rem 1.2rem 4rem;
+  overflow: hidden;
+}
+
+.hero__background {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, #43185e, #861b43 55%, #f59e0b 140%);
+  opacity: 0.35;
+  pointer-events: none;
+}
+
+.nav,
+.hero__content {
+  position: relative;
+  max-width: 1080px;
+  margin: 0 auto;
+  z-index: 1;
+}
+
+.nav {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+}
+
+.logo {
+  color: #fff;
+  text-decoration: none;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+}
+
+.nav__links {
+  display: flex;
+  gap: 0.9rem;
+}
+
+.nav__links a {
+  color: #ffebf2;
+  text-decoration: none;
+  font-weight: 600;
+}
+
+.hero__content {
+  margin-top: 2rem;
+}
+
+.badge {
+  display: inline-flex;
+  margin: 0;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.16);
+  padding: 0.35rem 0.8rem;
+  font-size: 0.9rem;
+}
+
+h1 {
+  margin: 0.5rem 0 0;
+  font-size: clamp(2rem, 5vw, 3.8rem);
+  line-height: 1.05;
+}
+
+h1 span {
+  color: #ffd989;
+}
+
+.lead {
+  max-width: 58ch;
+  color: #ffe8fb;
+  font-size: 1.1rem;
+}
+
+.hero__meta {
+  display: grid;
+  gap: 0.45rem;
+  margin-bottom: 1.2rem;
+}
+
+.container {
+  max-width: 1080px;
+  margin: -1.8rem auto 0;
+  padding: 0 1.2rem 4rem;
+}
+
+.card {
+  background: linear-gradient(180deg, var(--panel-soft), var(--panel));
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 20px;
+  padding: 1.2rem;
+  box-shadow: var(--shadow);
+  margin-bottom: 1rem;
+}
+
+.card h2,
+.card h3 {
+  margin-top: 0;
+}
+
+.card__header p {
+  margin-top: 0.2rem;
+  color: var(--muted);
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1rem;
+}
+
+.demo {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+
+.demo__controls label {
+  font-weight: 600;
+}
+
+#waffleRange {
+  width: 100%;
+  margin-top: 0.5rem;
+}
+
+.counter {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.8rem;
+  margin-top: 0.8rem;
+}
+
+.counter button {
+  width: 2.2rem;
+  height: 2.2rem;
+  border: 0;
+  border-radius: 999px;
+  font-size: 1.1rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.counter output {
+  min-width: 2ch;
+  font-size: 1.4rem;
+  font-weight: 700;
+}
+
+.demo__message {
+  margin-top: 1rem;
+  font-weight: 600;
+  color: #ffe8b0;
+}
+
+.demo__visual {
+  background: rgba(255, 255, 255, 0.07);
+  border-radius: 16px;
+  padding: 1rem;
+  min-height: 210px;
+}
+
+.waffles {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-bottom: 0.7rem;
+}
+
+.waffle-icon {
+  font-size: 1.6rem;
+  transform: translateY(0);
+  transition: transform 0.2s ease;
+}
+
+.waffle-icon:nth-child(odd) {
+  transform: rotate(-4deg);
+}
+
+.eland {
+  display: none;
+  align-items: center;
+  gap: 0.6rem;
+  margin-top: 0.5rem;
+  animation: pop-in 0.28s ease-out;
+}
+
+.eland.is-visible {
+  display: flex;
+}
+
+.eland__emoji {
+  font-size: 2.3rem;
+}
+
+.eland__sound {
+  font-size: 1.15rem;
+  font-weight: 800;
+  color: #ffd995;
+  letter-spacing: 0.05em;
+  text-shadow: 0 3px 10px rgba(255, 204, 111, 0.35);
+}
+
+.btn {
+  border: 0;
+  border-radius: 999px;
+  padding: 0.75rem 1.2rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.btn--primary {
+  display: inline-flex;
+  text-decoration: none;
+  color: #191226;
+  background: linear-gradient(135deg, var(--accent), #ffd57f);
+}
+
+.btn--primary:hover {
+  filter: brightness(1.05);
+}
+
+.form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.8rem;
+}
+
+label {
+  display: grid;
+  gap: 0.3rem;
+  font-weight: 600;
+}
+
+input[type="text"],
+input[type="email"],
+input[type="number"] {
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--text);
+  border-radius: 10px;
+  padding: 0.65rem 0.7rem;
+  font-size: 0.95rem;
+}
+
+input[type="checkbox"] {
+  accent-color: var(--accent);
+}
+
+.consent {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.55rem;
+  margin: 0.8rem 0 0.2rem;
+}
+
+.error {
+  color: var(--error);
+  min-height: 1.05rem;
+  font-size: 0.85rem;
+}
+
+.form-status {
+  min-height: 1.1rem;
+  margin-top: 0.65rem;
+  font-weight: 600;
+}
+
+.form-status.is-success {
+  color: var(--ok);
+}
+
+.registrations {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 0.65rem;
+}
+
+.registrations li {
+  padding: 0.7rem 0.85rem;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.footer {
+  text-align: center;
+  color: var(--muted);
+  padding: 1.2rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+@keyframes pop-in {
+  from {
+    transform: scale(0.9);
+    opacity: 0.5;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+@media (max-width: 900px) {
+  .demo,
+  .grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 640px) {
+  .nav {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .form-grid {
+    grid-template-columns: 1fr;
+  }
+}
