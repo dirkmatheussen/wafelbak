@@ -69,6 +69,19 @@
     loadRecordings();
   }
 
+  async function deleteAccount() {
+    if (
+      !window.confirm(
+        "Wil je je inschrijving en alle gedeelde opnames definitief verwijderen?"
+      )
+    ) {
+      return;
+    }
+    await request("account", { method: "DELETE" });
+    showSignup();
+    formStatus.textContent = "Je inschrijving is verwijderd.";
+  }
+
   function openLogin() {
     if (location.hash === "#inloggen") {
       returning.open = true;
@@ -149,14 +162,21 @@
     fields.disabled = true;
     formStatus.textContent = "Inschrijving bewaren…";
     try {
-      const session = await request("register", {
+      await request("register", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(input),
       });
       form.reset();
-      showPractice(session.nickname);
-      start.focus();
+      const session = await request("session");
+      if (session.nickname) {
+        showPractice(session.nickname);
+        start.focus();
+      } else {
+        formStatus.textContent =
+          "Inschrijving verwerkt. Meld je aan als je al een account had.";
+        returning.open = true;
+      }
     } catch (error) {
       formStatus.textContent = error.message;
     } finally {
@@ -449,6 +469,19 @@
 
   refresh.addEventListener("click", () => loadRecordings());
   more.addEventListener("click", () => loadRecordings(true));
+  const deleteAccountButton = document.getElementById("deleteAccount");
+  if (deleteAccountButton) {
+    deleteAccountButton.addEventListener("click", async () => {
+      deleteAccountButton.disabled = true;
+      try {
+        await deleteAccount();
+      } catch (error) {
+        roundStatus.textContent = error.message;
+      } finally {
+        deleteAccountButton.disabled = false;
+      }
+    });
+  }
 
   async function restoreSession() {
     try {
