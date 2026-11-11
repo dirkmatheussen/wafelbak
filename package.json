@@ -6,7 +6,7 @@
     "node": ">=20"
   },
   "scripts": {
-    "build": "node scripts/migrate.mjs",
+    "build": "node scripts/migrate.mjs && node -e \"require('node:fs').accessSync('public/index.html')\"",
     "start": "node server.mjs",
     "dev": "node server.mjs",
     "test": "node --test tests/wafelbak.test.js"

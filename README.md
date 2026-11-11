@@ -43,6 +43,6 @@ npm test
 
 ## Geluid
 
-`assets/elandroep.wav` bevat 2,2 seconden uit
+`public/assets/elandroep.wav` bevat 2,2 seconden uit
 [Moose on the Daisy Farm Trail](https://www.nps.gov/isro/learn/wildlife-soundscape.htm),
 een veldopname van de National Park Service in Isle Royale National Park.

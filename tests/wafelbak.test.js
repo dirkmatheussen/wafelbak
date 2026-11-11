@@ -5,7 +5,7 @@ const {
   getElandBalkenState,
   validateRegistration,
   createRegistration,
-} = require("../src/lib/wafelbak");
+} = require("../public/src/lib/wafelbak");
 
 test("getElandBalkenState returns ready state at 3 waffles", () => {
   const result = getElandBalkenState(3);
