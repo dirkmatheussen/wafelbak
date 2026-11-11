@@ -1,158 +1,106 @@
 (function () {
-  const STORAGE_KEY = "wafelbakRegistrations";
-  const { getElandBalkenState, validateRegistration, createRegistration } =
-    window.WafelbakLib;
+  const ride = document.getElementById("waffleRide");
+  if (!ride) {
+    return;
+  }
 
-  const waffleRange = document.getElementById("waffleRange");
-  const waffleCountValue = document.getElementById("waffleCountValue");
-  const minusWaffle = document.getElementById("minusWaffle");
-  const plusWaffle = document.getElementById("plusWaffle");
-  const demoMessage = document.getElementById("demoMessage");
-  const wafflesVisual = document.getElementById("wafflesVisual");
-  const elandVisual = document.getElementById("elandVisual");
+  const team = ride.querySelector(".ride__team");
+  const replay = ride.querySelector(".ride__replay");
+  const soundButton = ride.querySelector(".ride__sound");
+  const sound = document.getElementById("rideSound");
+  const leg = document.getElementById("ride-leg");
+  const crank = document.getElementById("ride-crank");
+  const pedal = document.getElementById("ride-pedal");
+  const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
+  let pedalFrame;
 
-  const registrationForm = document.getElementById("registrationForm");
-  const formStatus = document.getElementById("formStatus");
-  const registrationsList = document.getElementById("registrationsList");
+  function pedalAlong(animation) {
+    const angle = (animation.currentTime ?? 0) / 650 * 2 * Math.PI + 0.85;
+    const horizontal = Math.round(18 * Math.cos(angle));
+    const vertical = Math.round(18 * Math.sin(angle));
+    const pedalX = 147 + horizontal;
+    const pedalY = 312 + vertical;
+    const kneeX = 166 + Math.round(horizontal * 0.38);
+    const kneeY = 222 + Math.round(vertical * 0.42);
+    const ankleX = pedalX - 5;
+    const ankleY = pedalY - 12;
 
-  let registrations = loadRegistrations();
+    crank.setAttribute("d", `M147 312 L${pedalX} ${pedalY}`);
+    pedal.setAttribute("d", `M${pedalX - 6} ${pedalY} h15`);
+    leg.setAttribute("d", `M119 199 Q132 210 ${kneeX} ${kneeY} L${ankleX} ${ankleY} l15 2`);
+    pedalFrame = window.requestAnimationFrame(() => pedalAlong(animation));
+  }
 
-  function loadRegistrations() {
-    try {
-      const raw = window.localStorage.getItem(STORAGE_KEY);
-      if (!raw) {
-        return [];
+  function startRide() {
+    if (reduceMotion.matches) {
+      return;
+    }
+
+    sound.currentTime = 0;
+    playMooseCall();
+
+    if (team.classList.contains("is-riding")) {
+      for (const animation of team.getAnimations({ subtree: true })) {
+        animation.currentTime = 0;
       }
-
-      const parsed = JSON.parse(raw);
-      return Array.isArray(parsed) ? parsed : [];
-    } catch (_error) {
-      return [];
+      return;
+    }
+    team.classList.add("is-riding");
+    const animation = team.getAnimations().find((item) => item.animationName === "ride-across");
+    if (animation) {
+      pedalAlong(animation);
+      team.classList.add("is-pedaling");
     }
   }
 
-  function saveRegistrations() {
-    window.localStorage.setItem(STORAGE_KEY, JSON.stringify(registrations));
-  }
-
-  function updateElandDemo(newCount) {
-    const clampedCount = Math.max(
-      Number(waffleRange.min),
-      Math.min(Number(waffleRange.max), Number(newCount))
-    );
-
-    waffleRange.value = String(clampedCount);
-    waffleCountValue.value = String(clampedCount);
-
-    wafflesVisual.innerHTML = "";
-    for (let index = 0; index < clampedCount; index += 1) {
-      const waffle = document.createElement("span");
-      waffle.className = "waffle-icon";
-      waffle.textContent = "🧇";
-      wafflesVisual.appendChild(waffle);
-    }
-
-    const state = getElandBalkenState(clampedCount);
-    demoMessage.textContent = state.message;
-    elandVisual.classList.toggle("is-visible", state.stage === "ready");
-  }
-
-  function getFormInput() {
-    const formData = new FormData(registrationForm);
-
-    return {
-      name: formData.get("name"),
-      email: formData.get("email"),
-      team: formData.get("team"),
-      waffleCount: formData.get("waffleCount"),
-      consent: formData.get("consent") === "on",
-    };
-  }
-
-  function renderErrors(errors) {
-    const errorNodes = registrationForm.querySelectorAll("[data-error-for]");
-    errorNodes.forEach((node) => {
-      const field = node.getAttribute("data-error-for");
-      node.textContent = errors[field] || "";
-    });
-  }
-
-  function renderRegistrations() {
-    registrationsList.innerHTML = "";
-
-    if (registrations.length === 0) {
-      const empty = document.createElement("li");
-      empty.textContent = "Nog geen inschrijvingen op dit toestel. Jij kan de eerste zijn!";
-      registrationsList.appendChild(empty);
+  function finishRide(event) {
+    if (event.target !== team || event.animationName !== "ride-across") {
       return;
     }
 
-    const sorted = [...registrations].sort((a, b) =>
-      b.createdAt.localeCompare(a.createdAt)
-    );
-
-    sorted.forEach((entry) => {
-      const item = document.createElement("li");
-      const waffleText =
-        typeof entry.waffleCount === "number"
-          ? `${entry.waffleCount} wafels`
-          : "mysterieus aantal wafels";
-
-      item.innerHTML = `
-        <strong>${escapeHtml(entry.name)}</strong> · ${escapeHtml(entry.email)}<br />
-        Team: ${escapeHtml(entry.team || "Solo")} · Claim: ${escapeHtml(
-          waffleText
-        )}
-      `;
-      registrationsList.appendChild(item);
-    });
+    window.cancelAnimationFrame(pedalFrame);
+    team.classList.remove("is-riding", "is-pedaling");
   }
 
-  function escapeHtml(text) {
-    return String(text)
-      .replaceAll("&", "&amp;")
-      .replaceAll("<", "&lt;")
-      .replaceAll(">", "&gt;");
+  team.addEventListener("animationend", finishRide);
+  team.addEventListener("animationcancel", finishRide);
+  replay.addEventListener("click", startRide);
+  replay.hidden = false;
+
+  function updateSoundButton() {
+    const playing = !sound.paused && !sound.ended;
+    soundButton.setAttribute("aria-pressed", String(playing));
   }
 
-  waffleRange.addEventListener("input", (event) => {
-    updateElandDemo(Number(event.target.value));
-  });
+  async function playMooseCall() {
+    try {
+      await sound.play();
+      soundButton.classList.remove("needs-play");
+    } catch (error) {
+      soundButton.classList.toggle("needs-play", error.name === "NotAllowedError");
+      updateSoundButton();
+    }
+  }
 
-  minusWaffle.addEventListener("click", () => {
-    updateElandDemo(Number(waffleRange.value) - 1);
-  });
-
-  plusWaffle.addEventListener("click", () => {
-    updateElandDemo(Number(waffleRange.value) + 1);
-  });
-
-  registrationForm.addEventListener("submit", (event) => {
-    event.preventDefault();
-    formStatus.textContent = "";
-    formStatus.classList.remove("is-success");
-
-    const input = getFormInput();
-    const validation = validateRegistration(input);
-    renderErrors(validation.errors);
-
-    if (!validation.valid) {
-      formStatus.textContent = "Controleer de velden met foutmeldingen.";
+  soundButton.addEventListener("click", () => {
+    if (!sound.paused) {
+      sound.pause();
+      sound.currentTime = 0;
       return;
     }
 
-    const registration = createRegistration(input);
-    registrations.push(registration);
-    saveRegistrations();
-    renderRegistrations();
-
-    registrationForm.reset();
-    renderErrors({});
-    formStatus.textContent =
-      "Gelukt! Je inschrijving staat in de lokale deelnemerslijst.";
-    formStatus.classList.add("is-success");
+    playMooseCall();
   });
+  sound.addEventListener("play", updateSoundButton);
+  sound.addEventListener("pause", updateSoundButton);
+  sound.addEventListener("ended", updateSoundButton);
+  soundButton.hidden = false;
 
-  updateElandDemo(Number(waffleRange.value));
-  renderRegistrations();
+  const rideObserver = new IntersectionObserver((entries) => {
+    if (entries.some((entry) => entry.intersectionRatio >= 0.5)) {
+      rideObserver.disconnect();
+      startRide();
+    }
+  }, { threshold: 0.5 });
+  rideObserver.observe(ride);
 })();

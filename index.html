@@ -1,160 +1,274 @@
 <!doctype html>
-<html lang="nl">
+<html lang="nl-BE">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Vliegende Wafelbak Monster — Belgisch Kampioenschap Eland Balken</title>
+    <meta name="theme-color" content="#ffd401" />
     <meta
       name="description"
-      content="Humoristische eventpagina voor het Belgisch Kampioenschap Eland Balken. Schrijf je in voor de Vliegende Wafelbak in Gent."
+      content="Kom op zondag 27 december wafels eten in De Mix in Gent. Wielerclub MOW bakt voor Kom op tegen Kanker, dit jaar met het Belgisch Kampioenschap Eland Balken."
     />
+    <title>Vliegend Wafelbak Monster in Absurdistan | Wielerclub MOW</title>
     <link rel="stylesheet" href="./styles.css" />
   </head>
-  <body>
-    <header class="hero" id="top">
-      <div class="hero__background"></div>
-      <nav class="nav">
-        <a class="logo" href="#top">🧇 Wafelbak Monster</a>
-        <div class="nav__links">
+  <body id="top">
+    <a class="skip-link" href="#inhoud">Naar de inhoud</a>
+    <header class="site-header">
+      <div class="site-header__inner">
+        <a class="site-brand" href="#top">
+          <img src="./assets/mow-logo.webp" alt="Wielerclub MOW" width="426" height="198" />
+        </a>
+        <nav aria-label="Hoofdnavigatie">
+          <a href="#goed-doel">Goed doel</a>
           <a href="#eland-balken">Eland Balken</a>
           <a href="#praktisch">Praktisch</a>
-          <a href="#inschrijven">Inschrijven</a>
-        </div>
-      </nav>
-      <section class="hero__content">
-        <p class="badge">presenteert · in Absurdistan</p>
-        <h1>Belgisch Kampioenschap <span>Eland Balken</span></h1>
-        <p class="lead">
-          Eerst 3 wafels binnen, dan pas de eland eruit. Een nobele, licht
-          absurde en vooral heerlijke sportdiscipline.
-        </p>
-        <div class="hero__meta">
-          <div><strong>Zondag 27 december</strong> · 15u tot …u</div>
-          <div><strong>De Mix</strong> · Zeugsteeg · Patershol Gent</div>
-          <div>Ten voordele van <strong>Kom op tegen Kanker</strong></div>
-        </div>
-        <a class="btn btn--primary" href="#inschrijven">Ik schrijf me in</a>
-      </section>
+        </nav>
+      </div>
     </header>
 
-    <main class="container">
-      <section class="card card--demo" id="eland-balken">
-        <div class="card__header">
-          <h2>Hoe ziet zo’n eland balken eruit?</h2>
-          <p>
-            Simpele wetenschap: <strong>3 wafels eten</strong> activeert het
-            zeldzame <em>eland-balkfenomeen</em>.
-          </p>
-        </div>
-        <div class="demo">
-          <div class="demo__controls">
-            <label for="waffleRange">Aantal wafels binnen:</label>
-            <input
-              type="range"
-              id="waffleRange"
-              min="0"
-              max="6"
-              step="1"
-              value="0"
-              aria-describedby="demoMessage"
+    <main class="page" id="inhoud">
+      <div class="poster">
+        <section class="hero" aria-labelledby="event-title">
+          <div class="hero__copy">
+            <p class="eyebrow">Wielerclub MOW presenteert</p>
+            <h1 id="event-title">
+              Vliegend<br />
+              Wafelbak<br />
+              <span>Monster</span>
+            </h1>
+            <p class="hero__lead">Nero eindigt met wafels. Wij trappen ermee af! Schuif aan bij de jaarlijkse wafelbak van Wielerclub MOW en help ons fietsen voor <strong>Kom op tegen Kanker.</strong></p>
+            <a class="button button--paper" href="#praktisch">
+              Plan je bezoek <span aria-hidden="true">↓</span>
+            </a>
+          </div>
+          <figure class="hero__art">
+            <img
+              src="./assets/flyer-monster.webp"
+              alt="Een rood wafelmonster met witte vleugels vliegt achter een blauw figuurtje aan."
+              width="605"
+              height="423"
+              fetchpriority="high"
             />
-            <div class="counter">
-              <button id="minusWaffle" type="button" aria-label="Minder wafels">
-                −
-              </button>
-              <output id="waffleCountValue">0</output>
-              <button id="plusWaffle" type="button" aria-label="Meer wafels">
-                +
-              </button>
-            </div>
-            <p id="demoMessage" class="demo__message"></p>
-          </div>
+            <figcaption>In Absurdistan</figcaption>
+          </figure>
+        </section>
 
-          <div class="demo__visual">
-            <div class="waffles" id="wafflesVisual" aria-hidden="true"></div>
-            <div class="eland" id="elandVisual" aria-live="polite">
-              <div class="eland__emoji">🫎</div>
-              <div class="eland__sound">BALKKKK!</div>
+        <div class="ride" id="waffleRide">
+          <div class="ride__team" aria-hidden="true">
+            <div class="ride__waffle"><span></span></div>
+            <svg class="ride__cyclist" viewBox="0 0 320 360">
+              <defs>
+                <path id="ride-leg-area" d="M110 197 126 190 179 210Q192 219 184 236L167 270Q190 272 191 289L185 306 177 308 177 339 135 339 135 325 123 317 126 301 134 292 139 263 150 233 112 214Z" />
+                <mask id="ride-cyclist-mask">
+                  <rect width="320" height="360" fill="white" />
+                  <use href="#ride-leg-area" fill="black" />
+                </mask>
+                <clipPath id="ride-frame-clip">
+                  <use href="#ride-leg-area" />
+                </clipPath>
+                <path id="ride-bike-frame" d="M113 247 231 239M113 247 147 312 230 239" />
+              </defs>
+              <image class="ride__still" href="./assets/ride-cyclist.png" width="320" height="360" />
+              <g class="ride__pedaling" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                <image href="./assets/ride-cyclist.png" width="320" height="360" mask="url(#ride-cyclist-mask)" />
+                <g clip-path="url(#ride-frame-clip)">
+                  <use href="#ride-bike-frame" stroke="#100c0a" stroke-width="17" />
+                  <use href="#ride-bike-frame" stroke="#ff421e" stroke-width="9" />
+                </g>
+                <circle cx="147" cy="312" r="14" fill="#ff421e" stroke="#100c0a" stroke-width="7" />
+                <path id="ride-crank" stroke="#100c0a" stroke-width="9" />
+                <path id="ride-pedal" stroke="#ff421e" stroke-width="7" />
+                <path id="ride-leg" />
+                <use href="#ride-leg" stroke="#100c0a" stroke-width="32" />
+                <use href="#ride-leg" stroke="#15c9bb" stroke-width="20" />
+              </g>
+            </svg>
+          </div>
+          <img
+            class="ride__destination"
+            src="./assets/madam-pheip.png"
+            width="760"
+            height="570"
+            alt="Madam Pheip wacht de fietser op met een berg wafels."
+          />
+          <div class="ride__controls">
+            <button class="ride__replay" type="button" aria-label="Speel de fietsanimatie opnieuw af" title="Speel de fietsanimatie opnieuw af" hidden>
+              <span aria-hidden="true">↻</span>
+            </button>
+            <button class="ride__sound" type="button" aria-label="Hoor de eland balken" aria-pressed="false" hidden>Balk!</button>
+          </div>
+          <audio id="rideSound" src="./assets/elandroep.wav" preload="auto"></audio>
+        </div>
+
+        <section id="praktisch" class="event-strip" aria-labelledby="practical-title">
+          <h2 id="practical-title" class="event-strip__label">Praktisch</h2>
+          <div class="event-strip__detail">
+            <time datetime="2026-12-27T15:00:00+01:00">Zondag 27 december</time>
+            <span>Vanaf 15 uur</span>
+          </div>
+          <div class="event-strip__detail">
+            <strong>De Mix</strong>
+            <span>Zeugsteeg · Patershol, Gent</span>
+          </div>
+        </section>
+      </div>
+
+      <section class="cause" id="goed-doel" aria-labelledby="cause-title">
+        <div class="cause__heading">
+          <p class="eyebrow">Wafels voor het goede doel</p>
+          <h2 id="cause-title">Van wafelijzer<br />naar fiets.</h2>
+        </div>
+        <div class="cause__story">
+          <div>
+            <p>Wielerclub MOW bakt al jaren wafels om geld in te zamelen. Met de opbrengst fietsen we voor <strong>Kom op tegen Kanker.</strong></p>
+            <a class="cause__link" href="https://www.komoptegenkanker.be/de-1000km/trap-mee-tegen-kanker" target="_blank" rel="noopener">Trap mee tegen kanker</a>
+            <a class="cause__link" href="#proefronde">Oefen je elandroep</a>
+          </div>
+          <img src="./assets/kott-logo.webp" alt="Kom op tegen Kanker" width="147" height="222" loading="lazy" />
+        </div>
+      </section>
+
+      <section class="championship" id="eland-balken" aria-labelledby="championship-title">
+        <div class="championship__copy">
+          <p class="eyebrow">Nieuw dit jaar</p>
+          <h2 id="championship-title">
+            <span>Belgisch kampioenschap</span>
+            Eland Balken
+          </h2>
+          <p class="championship__lead">Voor elke drie wafels die je eet, krijg je één beurt van 20 seconden om te balken als een eland.</p>
+          <dl class="rules">
+            <div>
+              <dt>Wafels per beurt</dt>
+              <dd>3</dd>
             </div>
+            <div>
+              <dt>Seconden balken</dt>
+              <dd>20</dd>
+            </div>
+          </dl>
+          <p class="jury">Onder toezicht van <strong>Meester Jo van Wafflé</strong>.</p>
+        </div>
+
+        <div class="demo" id="proefronde">
+          <h3>Proefronde met microfoon</h3>
+          <div class="demo__face">
+            <div class="demo__animal" id="elandVisual" aria-hidden="true">
+              <span class="demo__head"></span>
+              <span class="demo__call">Balk!</span>
+            </div>
+            <div class="demo__clock">
+              <span id="roundTimer" role="timer" aria-label="Resterende tijd">20 s</span>
+              <span class="demo__clock-label">op de klok</span>
+            </div>
+          </div>
+          <div id="practiceGate">
+            <p>Schrijf je in of meld je aan om je elandroep op te nemen en die van anderen te horen.</p>
+            <a class="button button--blue practice-action" href="#inschrijven">Schrijf je in</a>
+            <a class="cause__link" href="#inloggen">Al ingeschreven?</a>
+          </div>
+          <div id="practiceControls" hidden>
+            <p id="practiceGreeting"></p>
+            <button class="button button--blue practice-action" id="startRound" type="button">Start opname</button>
+            <div class="mic-status" id="micStatus" hidden>
+              <p class="mic-status__label">
+                <span class="mic-status__dot" aria-hidden="true"></span>
+                Opname bezig
+              </p>
+            </div>
+            <div class="practice-preview" id="recordingPreview" hidden>
+              <p>Beluister je opname en beslis of je ze wilt delen.</p>
+              <audio id="ownRecording" controls aria-label="Voorbeeld van je opname"></audio>
+              <div class="practice-buttons">
+                <button class="button button--blue" id="shareRecording" type="button">Deel opname</button>
+                <button class="button button--paper" id="discardRecording" type="button">Wis proefopname</button>
+              </div>
+            </div>
+            <p id="roundStatus" class="demo__status" role="status"></p>
           </div>
         </div>
       </section>
 
-      <section class="grid" id="praktisch">
-        <article class="card">
-          <h3>Jury met klasse</h3>
-          <p>
-            Onder streng en charmant toezicht van
-            <strong>Jo van Wafflé</strong>.
-          </p>
-        </article>
-        <article class="card">
-          <h3>Goede doel</h3>
-          <p>
-            Elke inschrijving steunt <strong>Kom op tegen Kanker</strong>. Pret
-            met impact.
-          </p>
-        </article>
-        <article class="card">
-          <h3>Locatie</h3>
-          <p>
-            <strong>De Mix</strong><br />
-            Zeugsteeg · Patershol<br />
-            Gent
-          </p>
-        </article>
-      </section>
-
-      <section class="card card--signup" id="inschrijven">
-        <div class="card__header">
-          <h2>Schrijf je in voor het kampioenschap</h2>
-          <p>
-            Vul je gegevens in. Je inschrijving verschijnt meteen in de
-            deelnemerslijst op dit toestel.
-          </p>
+      <section class="signup" id="inschrijven" aria-labelledby="signupTitle">
+        <div id="signupPanel">
+          <h2 id="signupTitle">Schrijf je in voor de proefronde</h2>
+          <p>Bij gedeelde opnames verschijnt alleen je roepnaam. Je naam en e-mailadres blijven bij je inschrijving.</p>
+          <form id="registrationForm" novalidate>
+            <fieldset id="registrationFields" disabled>
+              <div class="form-grid">
+                <label>
+                  Naam (verplicht)
+                  <input type="text" name="name" autocomplete="name" maxlength="120" required aria-describedby="name-error" />
+                  <small class="error" id="name-error" data-error-for="name"></small>
+                </label>
+                <label>
+                  E-mail (verplicht)
+                  <input type="email" name="email" autocomplete="email" maxlength="254" required aria-describedby="email-error" />
+                  <small class="error" id="email-error" data-error-for="email"></small>
+                </label>
+                <label>
+                  Roepnaam (verplicht)
+                  <input type="text" name="nickname" autocomplete="nickname" maxlength="40" required aria-describedby="nickname-error" />
+                  <small class="error" id="nickname-error" data-error-for="nickname"></small>
+                </label>
+                <label>
+                  Hoeveel wafels kan jij aan?
+                  <input type="number" min="0" max="999" name="waffleCount" aria-describedby="waffle-error" />
+                  <small class="error" id="waffle-error" data-error-for="waffleCount"></small>
+                </label>
+                <label>
+                  Met hoeveel personen kom je? (optioneel)
+                  <input type="number" min="1" max="999" name="partySize" aria-describedby="party-size-error" />
+                  <small class="error" id="party-size-error" data-error-for="partySize"></small>
+                </label>
+                <label>
+                  Hoe laat kom je ongeveer aan? (optioneel)
+                  <input type="time" name="arrivalTime" aria-describedby="arrival-time-error" />
+                  <small class="error" id="arrival-time-error" data-error-for="arrivalTime"></small>
+                </label>
+              </div>
+              <label class="consent">
+                <input type="checkbox" name="consent" required aria-describedby="consent-error" />
+                Andere ingeschreven deelnemers mogen mijn roepnaam zien bij de opnames die ik deel en die beluisteren.
+              </label>
+              <small class="error" id="consent-error" data-error-for="consent"></small>
+              <button class="button button--paper" type="submit">Inschrijven</button>
+            </fieldset>
+            <p id="formStatus" class="form-status" role="status"></p>
+          </form>
+          <details class="returning" id="inloggen">
+            <summary>Al ingeschreven? Meld je aan</summary>
+            <form id="loginForm">
+              <label>
+                E-mailadres van je inschrijving
+                <input type="email" name="email" autocomplete="email" maxlength="254" required />
+              </label>
+              <button class="button button--blue" type="submit" disabled>Aanmelden</button>
+              <p id="loginStatus" class="form-status" role="status"></p>
+            </form>
+          </details>
         </div>
-        <form id="registrationForm" novalidate>
-          <div class="form-grid">
-            <label>
-              Naam *
-              <input type="text" name="name" autocomplete="name" />
-              <small class="error" data-error-for="name"></small>
-            </label>
-            <label>
-              E-mail *
-              <input type="email" name="email" autocomplete="email" />
-              <small class="error" data-error-for="email"></small>
-            </label>
-            <label>
-              Team / Club
-              <input type="text" name="team" />
-              <small class="error" data-error-for="team"></small>
-            </label>
-            <label>
-              Hoeveel wafels kan jij aan?
-              <input type="number" min="0" name="waffleCount" />
-              <small class="error" data-error-for="waffleCount"></small>
-            </label>
-          </div>
-          <label class="consent">
-            <input type="checkbox" name="consent" />
-            Ik ga akkoord dat mijn naam op de lokale deelnemerslijst verschijnt.
-          </label>
-          <small class="error" data-error-for="consent"></small>
-          <button class="btn btn--primary" type="submit">Inschrijving bewaren</button>
-          <p id="formStatus" class="form-status" aria-live="polite"></p>
-        </form>
-      </section>
 
-      <section class="card">
-        <h2>Lokale deelnemerslijst</h2>
-        <ul id="registrationsList" class="registrations"></ul>
+        <div id="recordingsPanel" hidden>
+          <div class="recordings-heading">
+            <h2>Gedeelde elandroepen</h2>
+            <button class="button button--paper" id="refreshRecordings" type="button">Vernieuwen</button>
+          </div>
+          <p id="recordingsStatus" class="form-status" role="status"></p>
+          <ul id="recordingsList" class="recordings"></ul>
+          <button class="button button--paper practice-action" id="moreRecordings" type="button" hidden>Meer opnames</button>
+        </div>
       </section>
     </main>
 
-    <footer class="footer">Vliegend Wafelbak Monster · Absurdistan forever 🧇🫎</footer>
+    <footer class="site-footer">
+      <div>
+        <p>Vliegend Wafelbak Monster <span>·</span> Wielerclub MOW</p>
+        <a href="#top">Naar boven ↑</a>
+      </div>
+    </footer>
 
     <script src="./src/lib/wafelbak.js"></script>
     <script src="./src/main.js"></script>
+    <script src="./src/practice.js"></script>
   </body>
 </html>
