@@ -162,9 +162,13 @@
             </div>
           </div>
           <div id="practiceGate">
-            <p>Na je inschrijving kun je hier al oefenen en luisteren naar gedeelde elandroepen.</p>
+            <p>
+              Om te oefenen, te luisteren en te delen kies je bij inschrijving een
+              wachtwoord en roepnaam. Alleen “ik kom” zonder wachtwoord is ook goed —
+              dan blijft dit gedeelte dicht.
+            </p>
             <a class="button button--blue practice-action" href="#inschrijven">Schrijf je in</a>
-            <a class="cause__link" href="#inloggen">Al ingeschreven?</a>
+            <a class="cause__link" href="#inloggen">Al een wachtwoord? Meld je aan</a>
           </div>
           <div id="practiceControls" hidden>
             <p id="practiceGreeting"></p>
@@ -195,10 +199,9 @@
         <div id="signupPanel">
           <h2 id="signupTitle">Schrijf je in voor de wafelbak</h2>
           <p>
-            Zeg ja, ik kom — en oefen alvast je elandroep of beluister wat anderen ervan bakken.
-            Maximum 100 inschrijvingen. Bij gedeelde opnames verschijnt alleen je roepnaam
-            (maximaal 3 opnames per deelnemer). Je naam en e-mailadres blijven bij je inschrijving
-            tot je die zelf verwijdert.
+            Zeg ja, ik kom — naam en e-mail volstaan. Wil je ook oefenen, luisteren of delen?
+            Vul dan een wachtwoord en roepnaam in. Maximum 100 inschrijvingen. Bij gedeelde
+            opnames verschijnt alleen je roepnaam (maximaal 3 opnames per deelnemer).
           </p>
           <form id="registrationForm" novalidate>
             <fieldset id="registrationFields" disabled>
@@ -214,13 +217,15 @@
                   <small class="error" id="email-error" data-error-for="email"></small>
                 </label>
                 <label>
-                  Wachtwoord (verplicht)
-                  <input type="password" name="password" autocomplete="new-password" minlength="8" maxlength="128" required aria-describedby="password-error" />
+                  Wachtwoord (optioneel, voor oefenen)
+                  <input type="password" name="password" autocomplete="new-password" minlength="8" maxlength="128" aria-describedby="password-hint password-error" />
+                  <small id="password-hint" class="field-hint">Zonder wachtwoord schrijf je alleen in voor de wafelbak.</small>
                   <small class="error" id="password-error" data-error-for="password"></small>
                 </label>
                 <label>
-                  Roepnaam (verplicht)
-                  <input type="text" name="nickname" autocomplete="nickname" maxlength="40" required aria-describedby="nickname-error" />
+                  Roepnaam (nodig met wachtwoord)
+                  <input type="text" name="nickname" autocomplete="nickname" maxlength="40" aria-describedby="nickname-hint nickname-error" />
+                  <small id="nickname-hint" class="field-hint">Verschijnt bij opnames die je deelt.</small>
                   <small class="error" id="nickname-error" data-error-for="nickname"></small>
                 </label>
                 <label>
@@ -244,11 +249,12 @@
                 <input type="text" name="website" tabindex="-1" autocomplete="off" />
               </label>
               <label class="consent">
-                <input type="checkbox" name="consent" required aria-describedby="consent-error" />
-                Andere ingeschreven deelnemers mogen mijn roepnaam zien bij de opnames die ik deel en die beluisteren.
+                <input type="checkbox" name="consent" aria-describedby="consent-hint consent-error" />
+                Andere deelnemers met oefen-toegang mogen mijn roepnaam zien bij opnames die ik deel en die beluisteren.
               </label>
+              <small id="consent-hint" class="field-hint">Alleen nodig als je een wachtwoord kiest om te oefenen of te delen.</small>
               <small class="error" id="consent-error" data-error-for="consent"></small>
-              <button class="button button--paper" type="submit">Inschrijven</button>
+              <button class="button button--paper" type="submit">Ja, ik kom!</button>
             </fieldset>
             <p id="formStatus" class="form-status" role="status"></p>
           </form>

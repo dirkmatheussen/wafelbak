@@ -55,7 +55,10 @@
     const errors = {};
     const name = cleanText(input?.name);
     const email = cleanEmail(input?.email);
+    const password = String(input?.password ?? "");
+    const nickname = cleanText(input?.nickname);
     const consent = Boolean(input?.consent);
+    const wantsPractice = password.length > 0;
 
     if (!name) {
       errors.name = "Naam is verplicht.";
@@ -67,8 +70,17 @@
       errors.email = "Geef een geldig e-mailadres.";
     }
 
-    if (!consent) {
-      errors.consent = "Je moet akkoord gaan om in te schrijven.";
+    if (wantsPractice) {
+      if (password.length < 8 || password.length > 128) {
+        errors.password = "Kies een wachtwoord van 8 tot 128 tekens.";
+      }
+      if (!nickname) {
+        errors.nickname = "Kies een roepnaam om te oefenen of te delen.";
+      }
+      if (!consent) {
+        errors.consent =
+          "Geef toestemming om te oefenen en opnames te delen.";
+      }
     }
 
     return {

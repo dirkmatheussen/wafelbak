@@ -815,6 +815,15 @@ button {
   overflow: hidden;
 }
 
+.field-hint {
+  display: block;
+  margin-top: 0.25rem;
+  color: color-mix(in srgb, var(--ink) 62%, transparent);
+  font-size: 0.82rem;
+  font-weight: 500;
+  line-height: 1.35;
+}
+
 .consent {
   display: flex;
   align-items: baseline;
