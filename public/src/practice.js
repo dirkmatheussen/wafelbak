@@ -185,7 +185,7 @@
         showRsvpOnly();
         formStatus.textContent = password
           ? "Inschrijving verwerkt. Meld je aan als je al een account met wachtwoord had."
-          : "Je bent ingeschreven voor de wafelbak. Zonder wachtwoord kun je niet oefenen of luisteren — vul die later bij opnieuw inschrijven in als je wilt balken.";
+          : "Je bent ingeschreven voor de wafelbak. Zonder wachtwoord kun je niet oefenen of luisteren — vul die in deze browser opnieuw in als je wilt balken.";
         if (password) {
           returning.open = true;
         }
