@@ -60,6 +60,19 @@
     formStatus.textContent = "Je inschrijving in deze browser is verlopen. Schrijf je opnieuw in.";
   }
 
+  function showRsvpOnly() {
+    if (capture) {
+      closeCapture(capture);
+    }
+    clearDraft();
+    signup.hidden = false;
+    fields.disabled = false;
+    gate.hidden = false;
+    controls.hidden = true;
+    gallery.hidden = true;
+    list.replaceChildren();
+  }
+
   function showPractice(nickname) {
     signup.hidden = true;
     gate.hidden = true;
@@ -135,12 +148,6 @@
       website: String(data.get("website") || ""),
     };
     const { errors } = validateRegistration(input);
-    if (!input.nickname) {
-      errors.nickname = "Kies een roepnaam.";
-    }
-    if (password.length < 8 || password.length > 128) {
-      errors.password = "Kies een wachtwoord van 8 tot 128 tekens.";
-    }
     if (!count.validity.valid) {
       errors.waffleCount = "Geef een geheel aantal tussen 0 en 999 op.";
     }
@@ -170,13 +177,18 @@
       });
       form.reset();
       const session = await request("session");
-      if (session.nickname) {
+      if (session.practice && session.nickname) {
         showPractice(session.nickname);
         start.focus();
+        formStatus.textContent = "";
       } else {
-        formStatus.textContent =
-          "Inschrijving verwerkt. Meld je aan als je al een account had.";
-        returning.open = true;
+        showRsvpOnly();
+        formStatus.textContent = password
+          ? "Inschrijving verwerkt. Meld je aan als je al een account met wachtwoord had."
+          : "Je bent ingeschreven voor de wafelbak. Zonder wachtwoord kun je niet oefenen of luisteren — vul die later bij opnieuw inschrijven in als je wilt balken.";
+        if (password) {
+          returning.open = true;
+        }
       }
     } catch (error) {
       formStatus.textContent = error.message;
@@ -486,9 +498,9 @@
 
   async function restoreSession() {
     try {
-      const { nickname } = await request("session");
-      if (nickname) {
-        showPractice(nickname);
+      const session = await request("session");
+      if (session.practice && session.nickname) {
+        showPractice(session.nickname);
       }
     } catch (error) {
       formStatus.textContent = error.message;

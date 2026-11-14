@@ -31,7 +31,32 @@ test("validateRegistration rejects missing required fields", () => {
   assert.equal(result.valid, false);
   assert.equal(result.errors.name, "Naam is verplicht.");
   assert.equal(result.errors.email, "E-mail is verplicht.");
-  assert.equal(result.errors.consent, "Je moet akkoord gaan om in te schrijven.");
+  assert.equal(result.errors.consent, undefined);
+});
+
+test("validateRegistration allows RSVP without password or consent", () => {
+  const result = validateRegistration({
+    name: "Mila",
+    email: "mila@example.com",
+    password: "",
+    consent: false,
+  });
+
+  assert.equal(result.valid, true);
+});
+
+test("validateRegistration requires nickname and consent with password", () => {
+  const result = validateRegistration({
+    name: "Mila",
+    email: "mila@example.com",
+    password: "secret123",
+    nickname: "",
+    consent: false,
+  });
+
+  assert.equal(result.valid, false);
+  assert.equal(result.errors.nickname, "Kies een roepnaam om te oefenen of te delen.");
+  assert.match(result.errors.consent, /toestemming/i);
 });
 
 test("validateRegistration rejects malformed email", () => {
