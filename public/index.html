@@ -208,9 +208,9 @@
           </div>
           <div id="practiceGate">
             <p>
-              Om te oefenen, te luisteren en te delen heb je de gedeelde groepscode
-              nodig, plus een wachtwoord en roepnaam. Alleen “ik kom” zonder
-              wachtwoord kan ook — dan blijft dit gedeelte dicht.
+              Om te oefenen, te luisteren en te delen kies je bij inschrijving een
+              wachtwoord en roepnaam. Alleen “ik kom” zonder wachtwoord is ook goed —
+              dan blijft dit gedeelte dicht.
             </p>
             <a class="button button--blue practice-action" href="#inschrijven">Schrijf je in</a>
             <a class="cause__link" href="#inloggen">Al een wachtwoord? Meld je aan</a>
@@ -245,9 +245,8 @@
           <h2 id="signupTitle">Schrijf je in voor de wafelbak</h2>
           <p>
             Zeg ja, ik kom — naam en e-mail volstaan. Wil je ook oefenen, luisteren of delen?
-            Vul dan de groepscode (van MOW), een wachtwoord en roepnaam in. Maximum 100
-            inschrijvingen. Bij gedeelde opnames verschijnt alleen je roepnaam
-            (maximaal 3 opnames per deelnemer).
+            Vul dan een wachtwoord en roepnaam in. Maximum 100 inschrijvingen. Bij gedeelde
+            opnames verschijnt alleen je roepnaam (maximaal 3 opnames per deelnemer).
           </p>
           <form id="registrationForm" novalidate>
             <fieldset id="registrationFields" disabled>
@@ -261,12 +260,6 @@
                   E-mail (verplicht)
                   <input type="email" name="email" autocomplete="email" maxlength="254" required aria-describedby="email-error" />
                   <small class="error" id="email-error" data-error-for="email"></small>
-                </label>
-                <label>
-                  Groepscode (nodig om te oefenen)
-                  <input type="password" name="invite" autocomplete="off" minlength="8" maxlength="128" aria-describedby="invite-hint invite-error" />
-                  <small id="invite-hint" class="field-hint">Krijg je van MOW. Alleen nodig als je wilt oefenen, luisteren of delen.</small>
-                  <small class="error" id="invite-error" data-error-for="invite"></small>
                 </label>
                 <label>
                   Wachtwoord (optioneel, voor oefenen)
@@ -302,9 +295,9 @@
               </label>
               <label class="consent">
                 <input type="checkbox" name="consent" aria-describedby="consent-hint consent-error" />
-                Andere gasten met oefen-toegang (groepscode) mogen mijn gedeelde opnames beluisteren en mijn roepnaam zien.
+                Andere deelnemers met oefen-toegang mogen mijn gedeelde opnames beluisteren en mijn roepnaam zien.
               </label>
-              <small id="consent-hint" class="field-hint">Alleen nodig als je een wachtwoord en groepscode kiest om te oefenen of te delen.</small>
+              <small id="consent-hint" class="field-hint">Alleen nodig als je een wachtwoord kiest om te oefenen of te delen.</small>
               <small class="error" id="consent-error" data-error-for="consent"></small>
               <button class="button button--paper" type="submit">Ja, ik kom!</button>
             </fieldset>
@@ -364,6 +357,7 @@
                   <th scope="col">Aankomst</th>
                   <th scope="col">Oefenen</th>
                   <th scope="col">Ingeschreven</th>
+                  <th scope="col"><span class="visually-hidden">Acties</span></th>
                 </tr>
               </thead>
               <tbody id="adminRows"></tbody>
