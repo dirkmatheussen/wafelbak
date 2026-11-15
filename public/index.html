@@ -332,10 +332,19 @@
         <div id="adminPanel" class="admin-panel" hidden>
           <div class="recordings-heading">
             <h2>Inschrijvingen</h2>
-            <button class="button button--paper" id="refreshAdmin" type="button">Vernieuwen</button>
+            <button class="button button--paper" id="refreshAdmin" type="button" hidden>Vernieuwen</button>
           </div>
+          <form id="adminUnlockForm" class="admin-unlock" hidden>
+            <p>Bevestig met je admin-code om de inschrijvingen te zien.</p>
+            <label>
+              Admin-code
+              <input type="password" name="secret" autocomplete="off" required minlength="8" maxlength="128" />
+            </label>
+            <button class="button button--blue" type="submit">Ontgrendel lijst</button>
+            <p id="adminUnlockStatus" class="form-status" role="status"></p>
+          </form>
           <p id="adminStatus" class="form-status" role="status"></p>
-          <div class="admin-table-wrap">
+          <div class="admin-table-wrap" id="adminTableWrap" hidden>
             <table class="admin-table" id="adminTable">
               <thead>
                 <tr>

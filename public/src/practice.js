@@ -29,11 +29,15 @@
   const adminStatus = document.getElementById("adminStatus");
   const adminRows = document.getElementById("adminRows");
   const refreshAdmin = document.getElementById("refreshAdmin");
+  const adminUnlockForm = document.getElementById("adminUnlockForm");
+  const adminUnlockStatus = document.getElementById("adminUnlockStatus");
+  const adminTableWrap = document.getElementById("adminTableWrap");
 
   let capture = null;
   let draft = null;
   let offset = 0;
   let isAdminUser = false;
+  let isAdminEligible = false;
 
   async function request(path, options) {
     const response = await fetch(`/api/${path}`, options);
@@ -53,11 +57,46 @@
 
   function hideAdmin() {
     isAdminUser = false;
+    isAdminEligible = false;
     if (adminPanel) {
       adminPanel.hidden = true;
     }
+    if (adminUnlockForm) {
+      adminUnlockForm.hidden = true;
+      adminUnlockForm.reset();
+    }
+    if (adminUnlockStatus) {
+      adminUnlockStatus.textContent = "";
+    }
+    if (adminTableWrap) {
+      adminTableWrap.hidden = true;
+    }
+    if (refreshAdmin) {
+      refreshAdmin.hidden = true;
+    }
     if (adminRows) {
       adminRows.replaceChildren();
+    }
+    if (adminStatus) {
+      adminStatus.textContent = "";
+    }
+  }
+
+  function showAdminUnlock() {
+    if (!adminPanel) {
+      return;
+    }
+    isAdminEligible = true;
+    isAdminUser = false;
+    adminPanel.hidden = false;
+    if (adminUnlockForm) {
+      adminUnlockForm.hidden = false;
+    }
+    if (adminTableWrap) {
+      adminTableWrap.hidden = true;
+    }
+    if (refreshAdmin) {
+      refreshAdmin.hidden = true;
     }
     if (adminStatus) {
       adminStatus.textContent = "";
@@ -113,8 +152,17 @@
       return;
     }
     adminPanel.hidden = false;
+    if (adminUnlockForm) {
+      adminUnlockForm.hidden = true;
+    }
+    if (adminTableWrap) {
+      adminTableWrap.hidden = false;
+    }
+    if (refreshAdmin) {
+      refreshAdmin.hidden = false;
+      refreshAdmin.disabled = true;
+    }
     adminStatus.textContent = "Inschrijvingen laden…";
-    refreshAdmin.disabled = true;
     try {
       const data = await request("admin/registrations");
       adminRows.replaceChildren(
@@ -144,17 +192,28 @@
     } catch (error) {
       adminStatus.textContent = error.message;
       if (error.status === 403 || error.status === 401) {
-        hideAdmin();
+        if (isAdminEligible) {
+          showAdminUnlock();
+        } else {
+          hideAdmin();
+        }
       }
     } finally {
-      refreshAdmin.disabled = false;
+      if (refreshAdmin) {
+        refreshAdmin.disabled = false;
+      }
     }
   }
 
   function applyAdmin(session) {
     if (session?.admin) {
+      isAdminEligible = true;
       isAdminUser = true;
       loadAdminRegistrations();
+      return;
+    }
+    if (session?.adminEligible) {
+      showAdminUnlock();
       return;
     }
     hideAdmin();
@@ -564,6 +623,26 @@
   more.addEventListener("click", () => loadRecordings(true));
   if (refreshAdmin) {
     refreshAdmin.addEventListener("click", () => loadAdminRegistrations());
+  }
+  if (adminUnlockForm) {
+    adminUnlockForm.addEventListener("submit", async (event) => {
+      event.preventDefault();
+      const data = new FormData(adminUnlockForm);
+      adminUnlockStatus.textContent = "Admin-code controleren…";
+      try {
+        await request("admin/unlock", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ secret: data.get("secret") }),
+        });
+        adminUnlockForm.reset();
+        adminUnlockStatus.textContent = "";
+        isAdminUser = true;
+        loadAdminRegistrations();
+      } catch (error) {
+        adminUnlockStatus.textContent = error.message;
+      }
+    });
   }
   const deleteAccountButton = document.getElementById("deleteAccount");
   if (deleteAccountButton) {
