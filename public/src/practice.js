@@ -151,6 +151,23 @@
     return String(value);
   }
 
+  async function deleteRegistration(item) {
+    if (
+      !window.confirm(
+        `Inschrijving van ${item.name} (${item.email}) definitief verwijderen?`,
+      )
+    ) {
+      return;
+    }
+    adminStatus.textContent = "Inschrijving verwijderen…";
+    try {
+      await request(`admin/registrations/${item.id}`, { method: "DELETE" });
+      await loadAdminRegistrations();
+    } catch (error) {
+      adminStatus.textContent = error.message;
+    }
+  }
+
   async function loadAdminRegistrations() {
     if (!adminPanel || !isAdminUser) {
       return;
@@ -187,6 +204,14 @@
             cell.textContent = formatCell(value);
             row.append(cell);
           }
+          const actions = document.createElement("td");
+          const remove = document.createElement("button");
+          remove.type = "button";
+          remove.className = "button button--paper admin-delete";
+          remove.textContent = "Verwijder";
+          remove.addEventListener("click", () => deleteRegistration(item));
+          actions.append(remove);
+          row.append(actions);
           return row;
         }),
       );
@@ -283,7 +308,6 @@
       email: data.get("email"),
       nickname: String(data.get("nickname") || "").trim(),
       password,
-      invite: String(data.get("invite") || ""),
       waffleCount: count.value === "" ? null : count.valueAsNumber,
       partySize: partySize.value === "" ? null : partySize.valueAsNumber,
       arrivalTime: arrivalTime.value || null,
