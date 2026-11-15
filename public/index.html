@@ -21,6 +21,7 @@
         <nav aria-label="Hoofdnavigatie">
           <a href="#goed-doel">Goed doel</a>
           <a href="#eland-balken">Eland Balken</a>
+          <a href="#wie-zijn-we">Wie zijn we</a>
           <a href="#praktisch">Praktisch</a>
         </nav>
       </div>
@@ -125,6 +126,49 @@
             <a class="cause__link" href="#inschrijven">Schrijf je in voor de wafelbak</a>
           </div>
           <img src="./assets/kott-logo.webp" alt="Kom op tegen Kanker" width="147" height="222" loading="lazy" />
+        </div>
+      </section>
+
+      <section class="about" id="wie-zijn-we" aria-labelledby="about-title">
+        <div class="about__intro">
+          <p class="eyebrow">Wielerclub MOW</p>
+          <h2 id="about-title">Wie zijn we</h2>
+          <p>
+            <strong>Maten Op Wielen</strong> (MOW) is een informele Gentse wielerclub.
+            We fietsen samen, zonder hiërarchie, en zetten elk jaar minstens één
+            maatschappelijk doel voorop. De wafelbak is zo’n actie: de opbrengst
+            gaat naar onze deelname aan de <strong>1000 km voor Kom op tegen Kanker</strong>.
+          </p>
+        </div>
+        <figure class="about__poster">
+          <img
+            src="./assets/mow-wafelbak-poster.jpg"
+            alt="Affiche van de Grote Wafelenbak van Maten Op Wielen op zondag 27 december 2026 in The Mix, Gent."
+            width="1200"
+            height="1697"
+            loading="lazy"
+          />
+        </figure>
+        <div class="about__body">
+          <p>
+            Bij MOW telt verdraagzaamheid tussen sterkere en zwakkere fietsers,
+            geen haantjesgedrag, en aandacht voor wie net begint. Er is geen A-
+            of B-ploeg: we zijn gelijkwaardig. Wie meefiets, heeft een racefiets
+            en kan in een peloton rijden.
+          </p>
+          <p>
+            Ritten worden door leden zelf voorgesteld — meestal via onze WhatsApp-groep —
+            en volgen eenvoudige afspraken: samen uit, samen thuis; respecteer de
+            wegcode; pas de snelheid aan de traagste aan; houd de zwakkere uit de
+            wind. We rijden geen wedstrijd, al mag een spontane démarrage zolang
+            de groep het ritme terugvindt. En ja: bij voorkeur eindigt een tocht
+            met het aanvullen van de verbruikte calorieën.
+          </p>
+          <p>
+            Ieder lid doet mee aan de funding-activiteiten in de mate van zijn of
+            haar mogelijkheden. Elk lid is zelf verantwoordelijk op de fiets;
+            recreatief lidmaatschap bij Cycling Vlaanderen wordt aangeraden.
+          </p>
         </div>
       </section>
 
@@ -283,6 +327,31 @@
           <p id="recordingsStatus" class="form-status" role="status"></p>
           <ul id="recordingsList" class="recordings"></ul>
           <button class="button button--paper practice-action" id="moreRecordings" type="button" hidden>Meer opnames</button>
+        </div>
+
+        <div id="adminPanel" class="admin-panel" hidden>
+          <div class="recordings-heading">
+            <h2>Inschrijvingen</h2>
+            <button class="button button--paper" id="refreshAdmin" type="button">Vernieuwen</button>
+          </div>
+          <p id="adminStatus" class="form-status" role="status"></p>
+          <div class="admin-table-wrap">
+            <table class="admin-table" id="adminTable">
+              <thead>
+                <tr>
+                  <th scope="col">Naam</th>
+                  <th scope="col">E-mail</th>
+                  <th scope="col">Roepnaam</th>
+                  <th scope="col">Wafels</th>
+                  <th scope="col">Personen</th>
+                  <th scope="col">Aankomst</th>
+                  <th scope="col">Oefenen</th>
+                  <th scope="col">Ingeschreven</th>
+                </tr>
+              </thead>
+              <tbody id="adminRows"></tbody>
+            </table>
+          </div>
         </div>
       </section>
     </main>

@@ -25,10 +25,15 @@
   const list = document.getElementById("recordingsList");
   const refresh = document.getElementById("refreshRecordings");
   const more = document.getElementById("moreRecordings");
+  const adminPanel = document.getElementById("adminPanel");
+  const adminStatus = document.getElementById("adminStatus");
+  const adminRows = document.getElementById("adminRows");
+  const refreshAdmin = document.getElementById("refreshAdmin");
 
   let capture = null;
   let draft = null;
   let offset = 0;
+  let isAdminUser = false;
 
   async function request(path, options) {
     const response = await fetch(`/api/${path}`, options);
@@ -46,6 +51,19 @@
     return data;
   }
 
+  function hideAdmin() {
+    isAdminUser = false;
+    if (adminPanel) {
+      adminPanel.hidden = true;
+    }
+    if (adminRows) {
+      adminRows.replaceChildren();
+    }
+    if (adminStatus) {
+      adminStatus.textContent = "";
+    }
+  }
+
   function showSignup() {
     if (capture) {
       closeCapture(capture);
@@ -57,6 +75,7 @@
     controls.hidden = true;
     gallery.hidden = true;
     list.replaceChildren();
+    hideAdmin();
     formStatus.textContent = "Je inschrijving in deze browser is verlopen. Schrijf je opnieuw in.";
   }
 
@@ -80,6 +99,65 @@
     gallery.hidden = false;
     greeting.textContent = `Klaar om te balken, ${nickname}?`;
     loadRecordings();
+  }
+
+  function formatCell(value) {
+    if (value == null || value === "") {
+      return "—";
+    }
+    return String(value);
+  }
+
+  async function loadAdminRegistrations() {
+    if (!adminPanel || !isAdminUser) {
+      return;
+    }
+    adminPanel.hidden = false;
+    adminStatus.textContent = "Inschrijvingen laden…";
+    refreshAdmin.disabled = true;
+    try {
+      const data = await request("admin/registrations");
+      adminRows.replaceChildren(
+        ...data.items.map((item) => {
+          const row = document.createElement("tr");
+          const cells = [
+            item.name,
+            item.email,
+            item.nickname,
+            item.waffleCount,
+            item.partySize,
+            item.arrivalTime,
+            item.practice ? "ja" : "nee",
+            item.createdAt,
+          ];
+          for (const value of cells) {
+            const cell = document.createElement("td");
+            cell.textContent = formatCell(value);
+            row.append(cell);
+          }
+          return row;
+        }),
+      );
+      adminStatus.textContent = data.items.length
+        ? `${data.items.length} inschrijving${data.items.length === 1 ? "" : "en"}.`
+        : "Nog geen inschrijvingen.";
+    } catch (error) {
+      adminStatus.textContent = error.message;
+      if (error.status === 403 || error.status === 401) {
+        hideAdmin();
+      }
+    } finally {
+      refreshAdmin.disabled = false;
+    }
+  }
+
+  function applyAdmin(session) {
+    if (session?.admin) {
+      isAdminUser = true;
+      loadAdminRegistrations();
+      return;
+    }
+    hideAdmin();
   }
 
   async function deleteAccount() {
@@ -110,7 +188,7 @@
     loginStatus.textContent = "Aanmelden…";
     try {
       const loginData = new FormData(loginForm);
-      const { nickname } = await request("login", {
+      const loggedIn = await request("login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -120,7 +198,8 @@
       });
       loginForm.reset();
       loginStatus.textContent = "";
-      showPractice(nickname);
+      showPractice(loggedIn.nickname);
+      applyAdmin(loggedIn);
       start.focus();
     } catch (error) {
       loginStatus.textContent = error.message;
@@ -177,6 +256,7 @@
       });
       form.reset();
       const session = await request("session");
+      applyAdmin(session);
       if (session.practice && session.nickname) {
         showPractice(session.nickname);
         start.focus();
@@ -482,6 +562,9 @@
 
   refresh.addEventListener("click", () => loadRecordings());
   more.addEventListener("click", () => loadRecordings(true));
+  if (refreshAdmin) {
+    refreshAdmin.addEventListener("click", () => loadAdminRegistrations());
+  }
   const deleteAccountButton = document.getElementById("deleteAccount");
   if (deleteAccountButton) {
     deleteAccountButton.addEventListener("click", async () => {
@@ -499,6 +582,7 @@
   async function restoreSession() {
     try {
       const session = await request("session");
+      applyAdmin(session);
       if (session.practice && session.nickname) {
         showPractice(session.nickname);
       }
