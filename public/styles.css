@@ -578,6 +578,28 @@ button {
   border-top: 2px solid color-mix(in srgb, var(--ink) 18%, transparent);
 }
 
+.admin-unlock {
+  display: grid;
+  gap: 10px;
+  max-width: 28rem;
+  margin-top: 8px;
+}
+
+.admin-unlock label {
+  font-size: 0.9rem;
+  font-weight: 700;
+}
+
+.admin-unlock input {
+  display: block;
+  width: 100%;
+  min-height: 44px;
+  margin-top: 3px;
+  padding: 6px 8px;
+  border: 2px solid var(--ink);
+  background: #fff;
+}
+
 .admin-table-wrap {
   overflow-x: auto;
   margin-top: 12px;
