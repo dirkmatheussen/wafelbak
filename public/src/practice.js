@@ -283,6 +283,7 @@
       email: data.get("email"),
       nickname: String(data.get("nickname") || "").trim(),
       password,
+      invite: String(data.get("invite") || ""),
       waffleCount: count.value === "" ? null : count.valueAsNumber,
       partySize: partySize.value === "" ? null : partySize.valueAsNumber,
       arrivalTime: arrivalTime.value || null,
