@@ -166,6 +166,7 @@ button {
 
 .hero h1,
 .cause h2,
+.about h2,
 .championship h2,
 .demo h3 {
   font-family: var(--display);
@@ -520,6 +521,85 @@ button {
 .cause__story img {
   width: clamp(56px, 7vw, 88px);
   flex: 0 0 auto;
+}
+
+.about {
+  display: grid;
+  gap: clamp(22px, 4vw, 42px);
+  padding: clamp(46px, 6vw, 84px) clamp(16px, 4.2vw, 58px);
+  background:
+    radial-gradient(circle at 12% 18%, color-mix(in srgb, var(--yellow) 35%, transparent), transparent 42%),
+    linear-gradient(180deg, color-mix(in srgb, var(--paper) 88%, #fff7d6), var(--paper));
+}
+
+.about .eyebrow,
+.about h2 {
+  color: var(--blue);
+}
+
+.about h2 {
+  margin-top: 9px;
+  font-size: clamp(2.95rem, 6.4vw, 5.1rem);
+  letter-spacing: -0.015em;
+  line-height: 0.9;
+}
+
+.about__intro p,
+.about__body p {
+  max-width: 62ch;
+  font-size: clamp(1.05rem, 1.7vw, 1.28rem);
+  line-height: 1.5;
+}
+
+.about__intro p {
+  margin-top: 14px;
+}
+
+.about__body {
+  display: grid;
+  gap: 0.9rem;
+}
+
+.about__poster {
+  margin: 0;
+}
+
+.about__poster img {
+  display: block;
+  width: 100%;
+  height: auto;
+  border: 3px solid var(--ink);
+  box-shadow: 10px 10px 0 color-mix(in srgb, var(--blue) 55%, transparent);
+}
+
+.admin-panel {
+  margin-top: clamp(28px, 5vw, 48px);
+  padding-top: clamp(18px, 3vw, 28px);
+  border-top: 2px solid color-mix(in srgb, var(--ink) 18%, transparent);
+}
+
+.admin-table-wrap {
+  overflow-x: auto;
+  margin-top: 12px;
+}
+
+.admin-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.92rem;
+}
+
+.admin-table th,
+.admin-table td {
+  padding: 0.55rem 0.65rem;
+  text-align: left;
+  border-bottom: 1px solid color-mix(in srgb, var(--ink) 14%, transparent);
+  vertical-align: top;
+}
+
+.admin-table th {
+  font-weight: 800;
+  white-space: nowrap;
 }
 
 .championship {
@@ -942,7 +1022,8 @@ button {
     padding: 12px;
   }
 
-  .cause {
+  .cause,
+  .about {
     padding-inline: 5px;
   }
 
@@ -959,8 +1040,13 @@ button {
 
   .hero,
   .cause,
+  .about,
   .championship {
     grid-template-columns: minmax(0, 1fr);
+  }
+
+  .about__poster img {
+    box-shadow: 6px 6px 0 color-mix(in srgb, var(--blue) 55%, transparent);
   }
 
   .hero {
@@ -997,7 +1083,8 @@ button {
     gap: 17px;
   }
 
-  .cause h2 {
+  .cause h2,
+  .about h2 {
     font-size: clamp(3.4rem, 11vw, 4.85rem);
   }
 
