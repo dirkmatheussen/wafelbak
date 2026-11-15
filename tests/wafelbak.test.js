@@ -50,11 +50,13 @@ test("validateRegistration requires nickname and consent with password", () => {
     name: "Mila",
     email: "mila@example.com",
     password: "secret123",
+    invite: "",
     nickname: "",
     consent: false,
   });
 
   assert.equal(result.valid, false);
+  assert.equal(result.errors.invite, "Vul de groepscode in (minimaal 8 tekens).");
   assert.equal(result.errors.nickname, "Kies een roepnaam om te oefenen of te delen.");
   assert.match(result.errors.consent, /toestemming/i);
 });

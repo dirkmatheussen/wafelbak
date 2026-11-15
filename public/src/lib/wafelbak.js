@@ -56,6 +56,7 @@
     const name = cleanText(input?.name);
     const email = cleanEmail(input?.email);
     const password = String(input?.password ?? "");
+    const invite = String(input?.invite ?? "");
     const nickname = cleanText(input?.nickname);
     const consent = Boolean(input?.consent);
     const wantsPractice = password.length > 0;
@@ -71,6 +72,9 @@
     }
 
     if (wantsPractice) {
+      if (invite.length < 8 || invite.length > 128) {
+        errors.invite = "Vul de groepscode in (minimaal 8 tekens).";
+      }
       if (password.length < 8 || password.length > 128) {
         errors.password = "Kies een wachtwoord van 8 tot 128 tekens.";
       }
