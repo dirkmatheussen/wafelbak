@@ -43,7 +43,11 @@
     const response = await fetch(`/api/${path}`, options);
     const type = response.headers.get("Content-Type") || "";
     if (!type.includes("application/json")) {
-      throw new Error("Open de Wafelbak-site via de server om te oefenen.");
+      throw new Error(
+        path.startsWith("admin/")
+          ? "Admin-lijst is tijdelijk niet bereikbaar. Probeer later opnieuw."
+          : "Open de Wafelbak-site via de server om te oefenen.",
+      );
     }
 
     const data = await response.json();
